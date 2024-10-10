@@ -1,11 +1,12 @@
-# Contribuir al proyecto
+# Contributing to the Project
 
-## Para los desarrolladores
-- Crear ramas: antes de hacer cambios, se creará una rama separada de la principal para trabajar sobre ella.
-- Hacer commits: Guardar los cambios hechos en la rama con un mensaje que explique qué se cambió.
-- Subir los cambios (push): Enviar esos cambios a GitHub para que todos los vean.
-- Hacer Pull Request: pedir que los cambios se revisen antes de agregarlos a la rama principal del proyecto.
+## For Developers
+- Create branches: Before making changes, a separate branch will be created from the main one to work on.
+- Make commits: Save the changes made in the branch with a message explaining what was changed.
+- Push changes: Upload those changes to GitHub so everyone can see them.
+- Make a Pull Request: Request that the changes be reviewed before adding them to the project's main branch.
 
-## Para los documentadores
-- Modificación del archivo README.md: A medida que el proyecto avance, el equipo de documentación se encargará de mantener el archivo actualizado, describiendo paso a paso el desarrollo del proyecto.
+## For Documenters
+- Modify the README.md file: As the project progresses, the documentation team will be responsible for keeping the file updated, describing the project's development step by step.
+
 
