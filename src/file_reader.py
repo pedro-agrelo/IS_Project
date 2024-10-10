@@ -14,21 +14,28 @@ def import_file(file_path):
     try:
         # Excel files
         if file_extension in ['.xlsx', '.xls']:
+            if not os.path.exists(file_path):
+                raise FileNotFoundError(f"Error: File not found at {file_path}")
+                
             df = pd.read_excel(file_path)
-            print("File is valid! First 5 lines of the Excel file:")
-            print(df.head())
-            
             if df.empty:
                 raise ValueError("The Excel database is empty.")
+            else:
+                print("File is valid! First 5 lines of the Excel file:")
+                print(df.head())
+            
+           
             
         # CSV files
         elif file_extension == '.csv':
             df = pd.read_csv(file_path)
-            print("File is valid! First 5 lines of the CSV file:")
-            print(df.head())
-            
             if df.empty:
                 raise ValueError("The CSV database is empty.")
+            else:
+                print("File is valid! First 5 lines of the CSV file:")
+                print(df.head())
+            
+            
  
         # SQLite files
         elif file_extension in ['.sqlite', '.db']:
