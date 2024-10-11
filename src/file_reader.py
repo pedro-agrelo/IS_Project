@@ -3,6 +3,8 @@ import sqlite3
 import os
 
 def import_file(file_path):
+    if not os.path.exists(file_path):
+        raise ValueError("Invalid path.")
     # Check if the file has a valid extension
     valid_extensions = ['.xlsx', '.xls', '.csv', '.sqlite', '.db']
     file_extension = os.path.splitext(file_path)[1].lower()
