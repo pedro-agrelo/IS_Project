@@ -75,6 +75,14 @@ boton3 = tk.Button(
 )
 boton3.pack(pady=10)
 
+etiqueta2 = tk.Label(
+    ventana, 
+    text="Tkinter es multiplataforma", 
+    font=("Arial", 14, "bold"), 
+    fg="#433333",  # Color del texto
+    bg="#FFC400"  # Color de fondo
+)
+etiqueta2.pack(pady=30)  # Espacio vertical entre elementos
 
 # Iniciar el bucle principal de la interfaz gráfica
 ventana.mainloop()
