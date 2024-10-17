@@ -93,8 +93,7 @@ class FileExplorer(QMainWindow):
         self.table_widget.setRowCount(df.shape[0])
         self.table_widget.setColumnCount(df.shape[1])
 
-        # Configurar los encabezados de la tabla
-        self.table_widget.setHorizontalHeaderLabels(df.columns)
+
 
         # Rellenar la tabla con los datos
         for i in range(df.shape[0]):
