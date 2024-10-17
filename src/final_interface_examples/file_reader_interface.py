@@ -57,7 +57,7 @@ class FileExplorer(QMainWindow):
         # Actualizar el texto del label con el archivo seleccionado
         if file_name:
             self.label.setText(f"<b>Archivo seleccionado:</b> <br><i>{file_name}</i>")
-            self.label.setStyleSheet("color: #FF6347;")  
+            self.label.setStyleSheet("color: #FFFFFF;")  
             self.load_file(file_name)  # Cargar el archivo y mostrarlo en la tabla
         else:
             self.label.setText("<b>No se seleccionó ningún archivo</b>")
@@ -133,7 +133,7 @@ class FileExplorer(QMainWindow):
                 background-color: #333333;  /* Gris oscuro para el botón */
                 color: white;
                 border-radius: 10px;
-                border: 2px solid #FF6347;  /* Borde rojo */
+                border: 2px solid #FFFFFF;  /* Borde blanco */
             }
             QPushButton:hover {
                 background-color: #555555;  /* Efecto hover más claro */
