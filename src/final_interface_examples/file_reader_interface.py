@@ -95,6 +95,7 @@ class FileExplorer(QMainWindow):
 
 
 
+
         # Rellenar la tabla con los datos
         for i in range(df.shape[0]):
             for j in range(df.shape[1]):
@@ -109,6 +110,7 @@ class FileExplorer(QMainWindow):
         self.table_widget.setVerticalScrollMode(self.table_widget.ScrollPerPixel)
 
         # Ajustar el tamaño de las cabeceras para que se adapten al contenido
+        self.table_widget.setHorizontalHeaderLabels(df.columns)
         self.table_widget.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
 
         # Hacer visible la tabla después de cargar el archivo
