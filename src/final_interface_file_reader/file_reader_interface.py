@@ -80,6 +80,11 @@ class FileExplorer(QMainWindow):
             conn = sqlite3.connect(file_name)
             query = "SELECT name FROM sqlite_master WHERE type='table';"
             tables = pd.read_sql(query, conn)
+            print(tables.empty)
+            if tables.empty:
+                self.show_empty_file_message()  # Mostrar un mensaje si el archivo está vacío
+                return  # No continuar si está vacío
+            
             first_table = tables['name'][0]  # Get the name of the table
             df = pd.read_sql(f"SELECT * FROM {first_table};", conn)
             conn.close()
