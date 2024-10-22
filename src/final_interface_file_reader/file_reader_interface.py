@@ -10,7 +10,7 @@ class FileExplorer(QMainWindow):
     def __init__(self):
         super().__init__()
 
-        self.setWindowTitle('Explorador de Archivos - CSV, Excel y SQLite')
+        self.setWindowTitle('File Explorer - CSV, Excel and SQLite')
         self.setGeometry(300, 150, 800, 600)  # Aumentar tamaño para la tabla
 
         # Llamar a los métodos de estilo y configuración
@@ -22,14 +22,14 @@ class FileExplorer(QMainWindow):
         layout = QVBoxLayout()
 
         # Crear una etiqueta para mostrar el mensaje inicial
-        self.label = QLabel("Selecciona un archivo CSV, Excel o SQLite")
+        self.label = QLabel("Select a CSV, Excel or SQLite file")
         self.label.setAlignment(Qt.AlignCenter)  # Centrar el texto
         self.label.setFont(QFont("Arial", 14))
         self.label.setStyleSheet("color: white;")  # Letras blancas para el tema oscuro
         layout.addWidget(self.label)
 
         # Crear un botón para abrir el explorador de archivos
-        self.button = QPushButton('Abrir Explorador de Archivos')
+        self.button = QPushButton('Open File Explorer')
         self.button.setFixedSize(300, 50)  # Tamaño fijo para el botón
         self.button.setFont(QFont("Arial", 12, QFont.Bold))  # Aplicar fuente y tamaño al botón
         self.button.clicked.connect(self.open_file_dialog)
@@ -52,15 +52,16 @@ class FileExplorer(QMainWindow):
         
         # Unificar todas las extensiones en un solo filtro
         file_filter = "Archivos compatibles (*.csv *.xlsx *.xls *.sqlite *.db)" #filtro para el buscador de archivos
-        file_name, _ = QFileDialog.getOpenFileName(self, "Seleccionar Archivo", "", file_filter, options=options)
+        file_name, _ = QFileDialog.getOpenFileName(self, "Select File", "", file_filter, options=options)
 
         # Actualizar el texto del label con el archivo seleccionado
         if file_name:
-            self.label.setText(f"<b>Archivo seleccionado:</b> <br><i>{file_name}</i>")
+            self.label.setText(f"<b>Selected file:</b> <br><i>{file_name}</i>")
             self.label.setStyleSheet("color: #FFFFFF;")  
             self.load_file(file_name)  # Cargar el archivo y mostrarlo en la tabla
         else:
-            self.label.setText("<b>No se seleccionó ningún archivo</b>")
+            self.table_widget.setVisible(False)
+            self.label.setText("<b>No file selected</b>")
             self.label.setStyleSheet("color: #FF6347;")  
 
 
@@ -82,6 +83,7 @@ class FileExplorer(QMainWindow):
             tables = pd.read_sql(query, conn)
             print(tables.empty)
             if tables.empty:
+                self.table_widget.setVisible(False)
                 self.show_empty_file_message()  # Mostrar un mensaje si el archivo está vacío
                 return  # No continuar si está vacío
             
@@ -91,6 +93,7 @@ class FileExplorer(QMainWindow):
             
         # Verificar si el DataFrame está vacío
         if df.empty:
+            self.table_widget.setVisible(False)
             self.show_empty_file_message()  # Mostrar un mensaje si el archivo está vacío
             return  # No continuar si está vacío
 
@@ -126,7 +129,7 @@ class FileExplorer(QMainWindow):
         """Muestra un mensaje de advertencia si el archivo está vacío"""
         msg = QMessageBox()
         msg.setIcon(QMessageBox.Warning)
-        msg.setWindowTitle("Archivo vacío")
+        msg.setWindowTitle("Empty file")
         msg.setText("El archivo seleccionado está vacío.")
         msg.setStandardButtons(QMessageBox.Ok)
         msg.exec_()
