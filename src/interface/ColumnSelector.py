@@ -73,7 +73,11 @@ class ColumnSelector(QWidget):
         self.list_widget_target.addItems(columns)
 
     def get_selected_columns(self):
-        """Devuelve las columnas seleccionadas"""
-        input_column = self.list_widget_entry.currentItem().text() if self.list_widget_entry.currentItem() else None
+        """Devuelve las columnas de entrada (features) seleccionadas y la columna de salida (target)"""
+        # Obtener todas las columnas seleccionadas para las entradas (selección múltiple)
+        input_columns = [item.text() for item in self.list_widget_entry.selectedItems()]
+        
+        # Obtener la columna de salida (solo una)
         target_column = self.list_widget_target.currentItem().text() if self.list_widget_target.currentItem() else None
-        return input_column, target_column
+        
+        return input_columns, target_column
