@@ -1,5 +1,5 @@
-
-from PyQt5.QtWidgets import (QGroupBox, QListWidget, QLabel,QVBoxLayout, QHBoxLayout, QWidget,QAbstractItemView, QMessageBox, QPushButton)
+from PyQt5.QtWidgets import (QGroupBox, QListWidget, QLabel,QVBoxLayout, QHBoxLayout,
+                              QWidget,QAbstractItemView, QMessageBox, QPushButton,QRadioButton)
 from PyQt5.QtGui import QFont
 from PyQt5.QtCore import Qt
 
@@ -16,10 +16,19 @@ class ColumnSelector(QWidget):
         self.entry_group.setMaximumWidth(400)  # Limitar el ancho del selector a 400px
         self.entry_group.setMaximumHeight(200)  # Limitar el ancho del selector a 400px
         self.entry_layout = QVBoxLayout(self.entry_group)
+
+        # Agregar botones de radio para seleccionar modo
+        self.single_selection_radio = QRadioButton("Single Selection")
+        self.single_selection_radio.setChecked(True)  # Por defecto selecciona simple
+        self.single_selection_radio.toggled.connect(self.update_selection_mode)
+        self.multiple_selection_radio = QRadioButton("Multiple Selection")
+        self.multiple_selection_radio.toggled.connect(self.update_selection_mode)
+        self.single_selection_radio.setStyleSheet("color: white;")
+        self.multiple_selection_radio.setStyleSheet("color: white;")
         
 
         self.list_widget_entry = QListWidget(self)
-        self.list_widget_entry.setSelectionMode(QAbstractItemView.MultiSelection)
+        self.list_widget_entry.setSelectionMode(QAbstractItemView.SingleSelection)
         self.list_widget_entry.setMaximumWidth(400)  # Limitar el ancho del selector a 400px
         self.list_widget_entry.setMaximumHeight(200)  # Limitar el ancho del selector a 400px
         self.list_widget_entry.setStyleSheet("""
@@ -33,7 +42,10 @@ class ColumnSelector(QWidget):
         }
     """)
         self.entry_layout.addWidget(self.create_label("Select Entry Columns:"))
+        self.entry_layout.addWidget(self.single_selection_radio)
+        self.entry_layout.addWidget(self.multiple_selection_radio)
         self.entry_layout.addWidget(self.list_widget_entry)
+
         
         # Añadir el grupo al layout principal
         self.selectors_layout.addWidget(self.entry_group)
@@ -83,7 +95,16 @@ class ColumnSelector(QWidget):
         
         self.layout.addLayout(self.selectors_layout)
         self.layout.addWidget(self.confirm_button, alignment=Qt.AlignCenter)
-    
+
+    def update_selection_mode(self):
+        """Actualiza el modo de selección de columnas según el botón de radio seleccionado."""
+        if self.single_selection_radio.isChecked():
+            self.list_widget_entry.setSelectionMode(QAbstractItemView.SingleSelection)
+  # Solo un elemento seleccionado
+        else:
+            self.list_widget_entry.setSelectionMode(QAbstractItemView.MultiSelection)
+   # Permitir múltiples selecciones
+
     def create_label(self, text):
         """Crea una etiqueta con estilos personalizados"""
         label = QLabel(text)

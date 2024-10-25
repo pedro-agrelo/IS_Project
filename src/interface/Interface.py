@@ -1,10 +1,11 @@
 import sys
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QPushButton, QFileDialog, QLabel,
-                             QVBoxLayout, QWidget, QMessageBox)
+                             QVBoxLayout, QHBoxLayout, QWidget)
 from PyQt5.QtGui import QFont, QPalette, QColor
 from PyQt5.QtCore import Qt
 from DataTable import DataTable
 from ColumnSelector import ColumnSelector
+from DataPreprocessor import DataPreprocessor
 
 class FileExplorerInterface(QMainWindow):
     def __init__(self):
@@ -19,33 +20,47 @@ class FileExplorerInterface(QMainWindow):
         
     def setup_ui(self):
         """Configura el diseño y widgets de la interfaz"""
-        layout = QVBoxLayout()
+        # Layout principal vertical
+        main_layout = QVBoxLayout()
 
         # Etiqueta para mostrar el mensaje inicial
         self.label = QLabel("Select a CSV, Excel or SQLite file")
         self.label.setAlignment(Qt.AlignCenter)
         self.label.setFont(QFont("Arial", 14))
         self.label.setStyleSheet("color: white;")
-        layout.addWidget(self.label)
+        main_layout.addWidget(self.label)
 
         # Botón para abrir el explorador de archivos
         self.button = QPushButton('Open File Explorer')
         self.button.setFixedSize(300, 50)
         self.button.setFont(QFont("Arial", 16, QFont.Bold))  # Aumentar tamaño de letra
         self.button.clicked.connect(self.open_file_dialog)
-        layout.addWidget(self.button, alignment=Qt.AlignCenter)
+        main_layout.addWidget(self.button, alignment=Qt.AlignCenter)
 
         # Tabla para mostrar los datos
         self.table_widget = DataTable()
-        layout.addWidget(self.table_widget)
+        main_layout.addWidget(self.table_widget)
+
+        # Layout horizontal para el selector de columnas y el preprocesador
+        selector_preprocessor_layout = QHBoxLayout()
+        selector_preprocessor_layout.setContentsMargins(20, 0, 0, 0)  # Margen izquierdo de 20 píxeles
 
         # Selector de columnas
         self.column_selector = ColumnSelector(self)
-        layout.addWidget(self.column_selector)
+        self.column_selector.setFixedWidth(800)  # Ajustar el ancho del selector de columnas
+        selector_preprocessor_layout.addWidget(self.column_selector)
+
+        # Preprocesador
+        self.data_preprocessor = DataPreprocessor(self.table_widget, self.column_selector)
+        selector_preprocessor_layout.addWidget(self.data_preprocessor)
+        self.data_preprocessor.setVisible(False)  # Ocultamos el preprocesador hasta que se cargue un archivo
+
+        # Agregar el layout horizontal al layout principal
+        main_layout.addLayout(selector_preprocessor_layout)
 
         # Contenedor central
         container = QWidget()
-        container.setLayout(layout)
+        container.setLayout(main_layout)
         self.setCentralWidget(container)
 
     def open_file_dialog(self):
@@ -60,18 +75,20 @@ class FileExplorerInterface(QMainWindow):
                 headers = [self.table_widget.horizontalHeaderItem(i).text() for i in range(self.table_widget.columnCount())]
                 self.column_selector.update_selectors(headers)
                 self.column_selector.setVisible(True)
+                self.data_preprocessor.setVisible(True)  
                 self.column_selector.confirm_button.setVisible(True)  # Mostrar el botón de confirmación
             else:
                 self.column_selector.setVisible(False)
                 self.column_selector.confirm_button.setVisible(False)  # Ocultar el botón si no se carga el archivo
+                self.data_preprocessor.setVisible(False)
                 self.show_empty_file_message()
         else:
             self.table_widget.setVisible(False)
             self.column_selector.setVisible(False)
+            self.data_preprocessor.setVisible(False)
             self.column_selector.confirm_button.setVisible(False)  # Ocultar el botón si no hay archivo
             self.label.setText("<b>No file selected</b>")
             self.label.setStyleSheet("color: #FF6347;")
-
 
     def apply_styles(self):
         """Aplica estilos (QSS) a los widgets"""

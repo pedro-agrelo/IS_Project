@@ -7,6 +7,8 @@ class DataTable(QTableWidget):
     def __init__(self):
         super().__init__()
         self.setVisible(False)  # Inicialmente oculto
+        self.df = pd.DataFrame()  # Inicialmente vacío
+
         self.setStyleSheet("""
     QTableWidget { 
         background-color: #2E2E2E;  /* Fondo gris oscuro para las celdas */
@@ -31,10 +33,10 @@ class DataTable(QTableWidget):
 
         # Identificar el tipo de archivo y cargarlo con pandas
         if file_extension in ['.csv']:
-            df = pd.read_csv(file_name)
+            self.df = pd.read_csv(file_name)
             
         elif file_extension in ['.xlsx','.xls']:
-            df = pd.read_excel(file_name)
+            self.df = pd.read_excel(file_name)
 
         elif file_extension in ['.sqlite','.db']:
             import sqlite3
@@ -46,22 +48,45 @@ class DataTable(QTableWidget):
                 return False # No continuar si está vacío
             
             first_table = tables['name'][0]  # Get the name of the table
-            df = pd.read_sql(f"SELECT * FROM {first_table};", conn)
+            self.df = pd.read_sql(f"SELECT * FROM {first_table};", conn)
             conn.close()
             
         # Verificar si el DataFrame está vacío
-        if df.empty:
+        if self.df.empty:
             self.setVisible(False)
             return False  # No continuar si está vacío
 
         # Establecer la cantidad de filas y columnas en el QTableWidget
-        self.setRowCount(df.shape[0])
-        self.setColumnCount(df.shape[1])
-
-
-
+        self.setRowCount(self.df.shape[0])
+        self.setColumnCount(self.df.shape[1])
 
         # Rellenar la tabla con los datos
+        for i in range(self.df.shape[0]):
+            for j in range(self.df.shape[1]):
+                self.setItem(i, j, QTableWidgetItem(str(self.df.iat[i, j])))
+
+        # Ajustar el comportamiento de las columnas y filas
+        self.resizeColumnsToContents()  # Ajusta el tamaño de las columnas
+        self.resizeRowsToContents()  # Ajusta el tamaño de las filas
+
+        # Habilitar scroll horizontal y vertical
+        self.setHorizontalScrollMode(self.ScrollPerPixel)
+        self.setVerticalScrollMode(self.ScrollPerPixel)
+
+        # Ajustar el tamaño de las cabeceras para que se adapten al contenido
+        self.setHorizontalHeaderLabels(self.df.columns)
+        self.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+
+        # Hacer visible la tabla después de cargar el archivo
+        self.setVisible(True)
+        return True
+    
+    def update_table(self, df):
+        self.df = df
+        # Establecer la cantidad de filas y columnas en el QTableWidget
+        self.setRowCount(self.df.shape[0])
+        self.setColumnCount(self.df.shape[1])
+
         for i in range(df.shape[0]):
             for j in range(df.shape[1]):
                 self.setItem(i, j, QTableWidgetItem(str(df.iat[i, j])))
@@ -75,9 +100,5 @@ class DataTable(QTableWidget):
         self.setVerticalScrollMode(self.ScrollPerPixel)
 
         # Ajustar el tamaño de las cabeceras para que se adapten al contenido
-        self.setHorizontalHeaderLabels(df.columns)
+        self.setHorizontalHeaderLabels(self.df.columns)
         self.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
-
-        # Hacer visible la tabla después de cargar el archivo
-        self.setVisible(True)
-        return True
