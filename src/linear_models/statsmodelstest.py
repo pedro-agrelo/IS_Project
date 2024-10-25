@@ -9,5 +9,5 @@ regresion = sm.ols('total_bedrooms ~ population - households', data=df) #Crear m
 sol=regresion.fit() #Ajuste
 
 print(sol.summary())
-print('R**2 = ', sol.rsquared
+print('R**2 = ', sol.rsquared)
 print(sol.params)
