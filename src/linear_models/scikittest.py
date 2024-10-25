@@ -113,4 +113,4 @@ if __name__ == "__main__":
             # Step 3: Train the model
             train_model(X, y)
 
-# D:/Escritorio/Carpeta Universidade/2024-2025/1C/PROYECTO IS/housing.xlsx
+
