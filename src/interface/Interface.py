@@ -1,6 +1,6 @@
 import sys
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QPushButton, QFileDialog, QLabel,
-                             QVBoxLayout, QHBoxLayout, QWidget)
+                             QVBoxLayout, QHBoxLayout, QWidget, QMessageBox)
 from PyQt5.QtGui import QFont, QPalette, QColor
 from PyQt5.QtCore import Qt
 from DataTable import DataTable
@@ -62,6 +62,15 @@ class FileExplorerInterface(QMainWindow):
         container = QWidget()
         container.setLayout(main_layout)
         self.setCentralWidget(container)
+
+    def show_empty_file_message(self):
+        """Muestra un mensaje de advertencia si el archivo está vacío"""
+        msg = QMessageBox()
+        msg.setIcon(QMessageBox.Warning)
+        msg.setWindowTitle("Empty file")
+        msg.setText("El archivo seleccionado está vacío.")
+        msg.setStandardButtons(QMessageBox.Ok)
+        msg.exec_()
 
     def open_file_dialog(self):
         """Abre el diálogo de selección de archivos con filtros y carga el archivo en la tabla"""
