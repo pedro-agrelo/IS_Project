@@ -165,7 +165,7 @@ class DataPreprocessor(QWidget):
         
     def highlight_empty_cells(self):
         """Resalta las celdas vacías en las columnas seleccionadas."""
-        selected_columns = self.column_selector.get_selected_columns()[0]
+        selected_columns = self.column_selector.get_selected_columns()[0] + [self.column_selector.get_selected_columns()[1]]
         if not selected_columns:
             QMessageBox.warning(self, "Warning", "Please select columns first.")
             return
