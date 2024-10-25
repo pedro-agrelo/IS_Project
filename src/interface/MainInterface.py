@@ -1,21 +1,32 @@
-import os
 import sys
-import pandas as pd
-from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QFileDialog, QLabel, QVBoxLayout, QWidget,QTableWidget, QTableWidgetItem, QHeaderView, QMessageBox
+from PyQt5.QtWidgets import (QApplication, QMainWindow, QPushButton,
+                             QFileDialog, QLabel,QVBoxLayout, QWidget,QMessageBox)
 from PyQt5.QtGui import QFont, QPalette, QColor
 from PyQt5.QtCore import Qt
+from DataTable import DataTable
+from ColumnSelector import ColumnSelector
 
+        
 
-class FileExplorer(QMainWindow):
+class FileExplorerInterface(QMainWindow):
     def __init__(self):
         super().__init__()
-
         self.setWindowTitle('File Explorer - CSV, Excel and SQLite')
         self.setGeometry(300, 150, 800, 600)  # Aumentar tamaño para la tabla
+        self.column_selector = ColumnSelector()
 
         # Llamar a los métodos de estilo y configuración
         self.setup_ui()
         self.apply_styles()
+        
+    def show_empty_file_message(self):
+        """Muestra un mensaje de advertencia si el archivo está vacío"""
+        msg = QMessageBox()
+        msg.setIcon(QMessageBox.Warning)
+        msg.setWindowTitle("Empty file")
+        msg.setText("El archivo seleccionado está vacío.")
+        msg.setStandardButtons(QMessageBox.Ok)
+        msg.exec_()
 
     def setup_ui(self):
         """Configura el diseño y widgets de la interfaz"""
@@ -36,14 +47,17 @@ class FileExplorer(QMainWindow):
         layout.addWidget(self.button, alignment=Qt.AlignCenter)  # Centrar el botón
 
         # Crear un widget de tabla para mostrar los datos, pero ocultarlo al principio
-        self.table_widget = QTableWidget()
-        self.table_widget.setVisible(False)  # Inicialmente oculto
+        self.table_widget = DataTable()
         layout.addWidget(self.table_widget)
 
         # Crear un contenedor central con el layout
         container = QWidget()
         container.setLayout(layout)
         self.setCentralWidget(container)
+        
+        #selector columnas
+        self.column_selector = ColumnSelector(self)
+        layout.addWidget(self.column_selector)
 
 
     def open_file_dialog(self):
@@ -58,81 +72,21 @@ class FileExplorer(QMainWindow):
         if file_name:
             self.label.setText(f"<b>Selected file:</b> <br><i>{file_name}</i>")
             self.label.setStyleSheet("color: #FFFFFF;")  
-            self.load_file(file_name)  # Cargar el archivo y mostrarlo en la tabla
+            if self.table_widget.load_file(file_name):  # Cargar el archivo y mostrarlo en la tabla
+                headers = [self.table_widget.horizontalHeaderItem(i).text() for i in range(self.table_widget.columnCount())]
+                self.column_selector.update_selectors(headers)
+                self.column_selector.setVisible(True)
+                
+            else:
+                self.column_selector.setVisible(False)
+                self.show_empty_file_message()
+                
+
         else:
             self.table_widget.setVisible(False)
+            self.column_selector.setVisible(False)
             self.label.setText("<b>No file selected</b>")
             self.label.setStyleSheet("color: #FF6347;")  
-
-
-    def load_file(self, file_name):
-        """Carga el archivo seleccionado en la tabla"""
-        file_extension = os.path.splitext(file_name)[1].lower()
-
-        # Identificar el tipo de archivo y cargarlo con pandas
-        if file_extension in ['.csv']:
-            df = pd.read_csv(file_name)
-            
-        elif file_extension in ['.xlsx','.xls']:
-            df = pd.read_excel(file_name)
-
-        elif file_extension in ['.sqlite','.db']:
-            import sqlite3
-            conn = sqlite3.connect(file_name)
-            query = "SELECT name FROM sqlite_master WHERE type='table';"
-            tables = pd.read_sql(query, conn)
-            print(tables.empty)
-            if tables.empty:
-                self.table_widget.setVisible(False)
-                self.show_empty_file_message()  # Mostrar un mensaje si el archivo está vacío
-                return  # No continuar si está vacío
-            
-            first_table = tables['name'][0]  # Get the name of the table
-            df = pd.read_sql(f"SELECT * FROM {first_table};", conn)
-            conn.close()
-            
-        # Verificar si el DataFrame está vacío
-        if df.empty:
-            self.table_widget.setVisible(False)
-            self.show_empty_file_message()  # Mostrar un mensaje si el archivo está vacío
-            return  # No continuar si está vacío
-
-        # Establecer la cantidad de filas y columnas en el QTableWidget
-        self.table_widget.setRowCount(df.shape[0])
-        self.table_widget.setColumnCount(df.shape[1])
-
-
-
-
-        # Rellenar la tabla con los datos
-        for i in range(df.shape[0]):
-            for j in range(df.shape[1]):
-                self.table_widget.setItem(i, j, QTableWidgetItem(str(df.iat[i, j])))
-
-        # Ajustar el comportamiento de las columnas y filas
-        self.table_widget.resizeColumnsToContents()  # Ajusta el tamaño de las columnas
-        self.table_widget.resizeRowsToContents()  # Ajusta el tamaño de las filas
-
-        # Habilitar scroll horizontal y vertical
-        self.table_widget.setHorizontalScrollMode(self.table_widget.ScrollPerPixel)
-        self.table_widget.setVerticalScrollMode(self.table_widget.ScrollPerPixel)
-
-        # Ajustar el tamaño de las cabeceras para que se adapten al contenido
-        self.table_widget.setHorizontalHeaderLabels(df.columns)
-        self.table_widget.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
-
-        # Hacer visible la tabla después de cargar el archivo
-        self.table_widget.setVisible(True)
-
-
-    def show_empty_file_message(self):
-        """Muestra un mensaje de advertencia si el archivo está vacío"""
-        msg = QMessageBox()
-        msg.setIcon(QMessageBox.Warning)
-        msg.setWindowTitle("Empty file")
-        msg.setText("El archivo seleccionado está vacío.")
-        msg.setStandardButtons(QMessageBox.Ok)
-        msg.exec_()
 
 
     def apply_styles(self):
@@ -158,6 +112,6 @@ class FileExplorer(QMainWindow):
 # Ejecutar la aplicación
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    window = FileExplorer()
+    window = FileExplorerInterface()
     window.show()
     sys.exit(app.exec_())
