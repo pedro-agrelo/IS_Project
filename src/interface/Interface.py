@@ -86,6 +86,8 @@ class FileExplorerInterface(QMainWindow):
                 self.column_selector.setVisible(True)
                 self.data_preprocessor.setVisible(True)  
                 self.column_selector.confirm_button.setVisible(True)  # Mostrar el botón de confirmación
+                self.label.setStyleSheet("color: #FFFFFF;")
+
             else:
                 self.column_selector.setVisible(False)
                 self.column_selector.confirm_button.setVisible(False)  # Ocultar el botón si no se carga el archivo
