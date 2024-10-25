@@ -78,8 +78,8 @@ class DataPreprocessor(QWidget):
 
         # Botón para mostrar valores vacíos
         self.empty_cells_button = QPushButton("Show Empty Cells")
-        self.empty_cells_button.setFont(QFont("Arial", 12, QFont.Bold))
-        self.empty_cells_button.setFixedWidth(300)
+        self.empty_cells_button.setFont(QFont("Arial", 16, QFont.Bold))
+        self.empty_cells_button.setFixedSize(300, 50)
         self.empty_cells_button.clicked.connect(self.highlight_empty_cells)
         self.empty_cells_button.setStyleSheet("""
             QPushButton {
