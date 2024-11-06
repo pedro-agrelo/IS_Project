@@ -6,6 +6,7 @@ from PyQt5.QtCore import Qt
 from DataTable import DataTable
 from ColumnSelector import ColumnSelector
 from DataPreprocessor import DataPreprocessor
+from LinearModel import LinearModel
 
 class FileExplorerInterface(QMainWindow):
     def __init__(self):
@@ -58,6 +59,18 @@ class FileExplorerInterface(QMainWindow):
         # Agregar el layout horizontal al layout principal
         main_layout.addLayout(selector_preprocessor_layout)
 
+        # Modelo lineal
+        self.linear_model_widget = LinearModel(self.table_widget, self.column_selector)
+        self.linear_model_widget.setVisible(False)
+        main_layout.addWidget(self.linear_model_widget)
+
+        # Botón para crear el modelo
+        self.create_model_button = QPushButton("Create Linear Model")
+        self.create_model_button.setFont(QFont("Arial", 12, QFont.Bold))
+        self.create_model_button.clicked.connect(self.create_model)
+        self.create_model_button.setVisible(False)
+        main_layout.addWidget(self.create_model_button)
+
         # Contenedor central
         container = QWidget()
         container.setLayout(main_layout)
@@ -83,8 +96,10 @@ class FileExplorerInterface(QMainWindow):
             if self.table_widget.load_file(file_name):
                 headers = [self.table_widget.horizontalHeaderItem(i).text() for i in range(self.table_widget.columnCount())]
                 self.column_selector.update_selectors(headers)
+                self.linear_model_widget.setVisible(False)
                 self.column_selector.setVisible(True)
-                self.data_preprocessor.setVisible(True)  
+                self.data_preprocessor.setVisible(True) 
+                self.create_model_button.setVisible(True) 
                 self.column_selector.confirm_button.setVisible(True)  # Mostrar el botón de confirmación
                 self.label.setStyleSheet("color: #FFFFFF;")
 
@@ -92,11 +107,13 @@ class FileExplorerInterface(QMainWindow):
                 self.column_selector.setVisible(False)
                 self.column_selector.confirm_button.setVisible(False)  # Ocultar el botón si no se carga el archivo
                 self.data_preprocessor.setVisible(False)
+                self.create_model_button.setVisible(False)
                 self.show_empty_file_message()
         else:
             self.table_widget.setVisible(False)
             self.column_selector.setVisible(False)
             self.data_preprocessor.setVisible(False)
+            self.create_model_button.setVisible(False)
             self.column_selector.confirm_button.setVisible(False)  # Ocultar el botón si no hay archivo
             self.label.setText("<b>No file selected</b>")
             self.label.setStyleSheet("color: #FF6347;")
@@ -123,6 +140,15 @@ class FileExplorerInterface(QMainWindow):
         palette.setColor(QPalette.Window, QColor(30, 30, 30))
         self.setPalette(palette)
 
+    def create_model(self):
+        if self.linear_model_widget.create_model():
+            self.table_widget.setVisible(False)
+            self.column_selector.setVisible(False)
+            self.data_preprocessor.setVisible(False)
+            self.create_model_button.setVisible(False)
+            self.linear_model_widget.setVisible(True)
+    
+    
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     window = FileExplorerInterface()
