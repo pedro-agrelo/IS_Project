@@ -6,7 +6,7 @@ from PyQt5.QtCore import Qt
 from DataTable import DataTable
 from ColumnSelector import ColumnSelector
 from DataPreprocessor import DataPreprocessor
-from LinearModel import LinearModel
+from Linear_Model2 import LinearModel
 
 class FileExplorerInterface(QMainWindow):
     def __init__(self):

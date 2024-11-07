@@ -8,11 +8,8 @@ class ModelSaver:
 
     def save_model(self, model, input_columns, output_column, mse, r2, description):
         """Abre un diálogo para guardar el modelo y los datos asociados en el archivo seleccionado por el usuario."""
-        
         # Diálogo para seleccionar el archivo de guardado
-        file_path, _ = QFileDialog.getSaveFileName(
-            self.parent, "Guardar Modelo", "", "Model Files (*.joblib)"
-        )
+        file_path, _ = QFileDialog.getSaveFileName(self.parent, "Guardar Modelo", "", "Model Files (*.joblib)")
 
         # Verifica si se seleccionó un archivo
         if not file_path:
@@ -20,20 +17,15 @@ class ModelSaver:
             return
 
         # Empaqueta los datos del modelo para guardar
-        model_data = {
-            "model": model,
-            "input_columns": input_columns,
-            "output_column": output_column,
-            "mse": mse,
-            "r2": r2,
-            "description": description,
-            "formula": self.get_formula(model, input_columns, output_column),
-        }
+        model_data = {"model": model,"input_columns": input_columns,"output_column": output_column,
+                      "mse": mse,"r2": r2,"description": description,
+                      "formula": self.get_formula(model, input_columns, output_column),}
 
         # Intenta guardar el archivo y maneja errores
         try:
             joblib.dump(model_data, file_path)
             self.show_message("Éxito", "Modelo guardado exitosamente.", "success")
+            
         except Exception as e:
             self.show_message("Error", f"No se pudo guardar el modelo: {e}", "error")
 
@@ -45,17 +37,4 @@ class ModelSaver:
         formula = f"{output_column} = {model.intercept_:.3f} + {coef_str}"
         return formula
 
-    def show_message(self, title, message, msg_type):
-        """Muestra un mensaje de confirmación o error según el tipo especificado."""
-        msg_box = QMessageBox(self.parent)
-
-        if msg_type == "success":
-            msg_box.setIcon(QMessageBox.Information)
-        elif msg_type == "warning":
-            msg_box.setIcon(QMessageBox.Warning)
-        elif msg_type == "error":
-            msg_box.setIcon(QMessageBox.Critical)
-
-        msg_box.setWindowTitle(title)
-        msg_box.setText(message)
-        msg_box.exec_()
+    
