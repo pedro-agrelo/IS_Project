@@ -98,6 +98,10 @@ class LinearModel(QWidget):
         if not entry_columns or not target_column:
             QMessageBox.warning(self, "Warning", "Please select entry and target columns.")
             return
+        
+        if self.table_widget.df[entry_columns].isnull().any().any() or self.table_widget.df[target_column].isnull().any():
+            QMessageBox.warning(self, "Warning", "There are missing values in the selected columns.")
+            return
 
         df = self.table_widget.df
         X = df[entry_columns].values
