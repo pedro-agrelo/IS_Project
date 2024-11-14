@@ -1,4 +1,5 @@
 import sys
+import joblib  # Para cargar archivos .joblib
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QPushButton, QFileDialog, QLabel,
                              QVBoxLayout, QHBoxLayout, QWidget, QMessageBox)
 from PyQt5.QtGui import QFont, QPalette, QColor
@@ -18,7 +19,7 @@ class FileExplorerInterface(QMainWindow):
         # Configuración de la interfaz
         self.setup_ui()
         self.apply_styles()
-        
+
     def setup_ui(self):
         """Configura el diseño y widgets de la interfaz"""
         # Layout principal vertical
@@ -37,6 +38,14 @@ class FileExplorerInterface(QMainWindow):
         self.button.setFont(QFont("Arial", 16, QFont.Bold))  # Aumentar tamaño de letra
         self.button.clicked.connect(self.open_file_dialog)
         main_layout.addWidget(self.button, alignment=Qt.AlignCenter)
+
+        # Botón para cargar modelo
+        self.load_model_button = QPushButton('Load Model (.joblib)')
+        self.load_model_button.setFixedSize(300, 50)
+        self.load_model_button.setFont(QFont("Arial", 16, QFont.Bold))
+        self.load_model_button.clicked.connect(self.load_model)
+        self.load_model_button.setVisible(True)  # Visible al principio
+        main_layout.addWidget(self.load_model_button, alignment=Qt.AlignCenter)
 
         # Tabla para mostrar los datos
         self.table_widget = DataTable()
@@ -134,11 +143,50 @@ class FileExplorerInterface(QMainWindow):
             }
         """
         self.button.setStyleSheet(button_style)  # Botón de abrir archivos
+        self.load_model_button.setStyleSheet(button_style)  # Botón para cargar el modelo
 
         # Estilos de la ventana y paleta de colores
         palette = QPalette()
         palette.setColor(QPalette.Window, QColor(30, 30, 30))
         self.setPalette(palette)
+
+    def load_model(self):
+        """Carga el modelo .joblib y muestra los datos correspondientes"""
+        options = QFileDialog.Options()
+        file_name, _ = QFileDialog.getOpenFileName(self, "Select Model File", "", "Archivos Joblib (*.joblib)", options=options)
+
+        if file_name:
+            try:
+                model = joblib.load(file_name)
+                self.show_message("Éxito", f"Modelo cargado correctamente desde: {file_name}")
+                self.display_data(model)
+            except Exception as e:
+                self.show_message("Error", f"Hubo un problema al cargar el modelo: {str(e)}")
+
+    def display_data(self, data):
+        """ Muestra los datos cargados (si es un DataFrame) """
+        if isinstance(data, pd.DataFrame):  # Si el archivo contiene un DataFrame de pandas
+            self.table_widget.setRowCount(data.shape[0])
+            self.table_widget.setColumnCount(data.shape[1])
+            self.table_widget.setHorizontalHeaderLabels(data.columns)
+
+            # Llenar la tabla con los datos del DataFrame
+            for i in range(data.shape[0]):
+                for j in range(data.shape[1]):
+                    self.table_widget.setItem(i, j, QTableWidgetItem(str(data.iloc[i, j])))
+
+            # Ajustar el tamaño de las columnas y filas para que el contenido se vea completamente
+            self.table_widget.resizeColumnsToContents()  # Ajusta las columnas al contenido
+            self.table_widget.resizeRowsToContents()     # Ajusta las filas al contenido
+
+        else:
+            self.show_message("Error", "El modelo no es un DataFrame, no se puede mostrar como una tabla.")
+
+    def show_message(self, title, message):
+        msg = QMessageBox()
+        msg.setWindowTitle(title)
+        msg.setText(message)
+        msg.exec_()
 
     def create_model(self):
         if self.linear_model_widget.create_model():
@@ -148,7 +196,7 @@ class FileExplorerInterface(QMainWindow):
             self.create_model_button.setVisible(False)
             self.linear_model_widget.setVisible(True)
     
-    
+
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     window = FileExplorerInterface()
