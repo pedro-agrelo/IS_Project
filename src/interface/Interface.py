@@ -150,38 +150,6 @@ class FileExplorerInterface(QMainWindow):
         palette.setColor(QPalette.Window, QColor(30, 30, 30))
         self.setPalette(palette)
 
-    def load_model(self):
-        """Carga el modelo .joblib y muestra los datos correspondientes"""
-        options = QFileDialog.Options()
-        file_name, _ = QFileDialog.getOpenFileName(self, "Select Model File", "", "Archivos Joblib (*.joblib)", options=options)
-
-        if file_name:
-            try:
-                model = joblib.load(file_name)
-                self.show_message("Éxito", f"Modelo cargado correctamente desde: {file_name}")
-                self.display_data(model)
-            except Exception as e:
-                self.show_message("Error", f"Hubo un problema al cargar el modelo: {str(e)}")
-
-    def display_data(self, data):
-        """ Muestra los datos cargados (si es un DataFrame) """
-        if isinstance(data, pd.DataFrame):  # Si el archivo contiene un DataFrame de pandas
-            self.table_widget.setRowCount(data.shape[0])
-            self.table_widget.setColumnCount(data.shape[1])
-            self.table_widget.setHorizontalHeaderLabels(data.columns)
-
-            # Llenar la tabla con los datos del DataFrame
-            for i in range(data.shape[0]):
-                for j in range(data.shape[1]):
-                    self.table_widget.setItem(i, j, QTableWidgetItem(str(data.iloc[i, j])))
-
-            # Ajustar el tamaño de las columnas y filas para que el contenido se vea completamente
-            self.table_widget.resizeColumnsToContents()  # Ajusta las columnas al contenido
-            self.table_widget.resizeRowsToContents()     # Ajusta las filas al contenido
-
-        else:
-            self.show_message("Error", "El modelo no es un DataFrame, no se puede mostrar como una tabla.")
-
     def show_message(self, title, message):
         msg = QMessageBox()
         msg.setWindowTitle(title)
@@ -190,6 +158,14 @@ class FileExplorerInterface(QMainWindow):
 
     def create_model(self):
         if self.linear_model_widget.create_model():
+            self.table_widget.setVisible(False)
+            self.column_selector.setVisible(False)
+            self.data_preprocessor.setVisible(False)
+            self.create_model_button.setVisible(False)
+            self.linear_model_widget.setVisible(True)
+
+    def load_model(self):
+        if self.linear_model_widget.load_model():
             self.table_widget.setVisible(False)
             self.column_selector.setVisible(False)
             self.data_preprocessor.setVisible(False)
