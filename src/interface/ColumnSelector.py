@@ -34,13 +34,11 @@ class ColumnSelector(QWidget):
         self.list_widget_entry.setStyleSheet("""
         QGroupBox {
             font-weight: bold;
-            color: #99FFFF;
-        }
+            color: #99FFFF;}
         QListWidget {
             background-color: #2E2E2E;  /* Fondo gris oscuro */
-            color: white;  /* Texto blanco */
-        }
-    """)
+            color: white;  /* Texto blanco */}
+        """)
         self.entry_layout.addWidget(self.create_label("Select Entry Columns:"))
         self.entry_layout.addWidget(self.single_selection_radio)
         self.entry_layout.addWidget(self.multiple_selection_radio)
@@ -60,15 +58,14 @@ class ColumnSelector(QWidget):
         self.list_widget_target.setMaximumWidth(400)  # Limitar el ancho del selector a 400px
         self.list_widget_target.setMaximumHeight(200)  # Limitar el ancho del selector a 400px
         self.list_widget_target.setStyleSheet("""
-    QGroupBox {
-        font-weight: bold;
-        color: #99FFFF;
-    }
-    QListWidget {
-        background-color: #2E2E2E;  /* Fondo gris oscuro */
-        color: white;  /* Texto blanco */
-    }
-""")
+            QGroupBox {
+                font-weight: bold;
+                color: #99FFFF;
+            }
+            QListWidget {
+                background-color: #2E2E2E;  /* Fondo gris oscuro */
+                color: white;  /* Texto blanco */}
+            """)
 
         # Añadir el grupo al layout principal
         self.selectors_layout.addWidget(self.target_group)
@@ -132,11 +129,12 @@ class ColumnSelector(QWidget):
     def confirm_selection(self):
         """Confirma la selección de columnas de entrada y salida"""
         entradas, salida = self.get_selected_columns()
+        entradas_str = ', '.join(entradas)
 
         if not entradas or not salida:
-            self.show_message("Error", "Debe seleccionar al menos una columna de entrada y una columna objetivo.", "warning")
+            self.show_message("Error", "Select at least one entry column and one target column.", "warning")
         else:
-            self.show_message("Success", f"Selected columns:\nEnter: {entradas}\nObjetive: {salida}", "success")
+            self.show_message("Success", f"Selected columns:\nEnter: {entradas_str}\nObjetive: {salida}", "success")
 
     def show_message(self, titulo, mensaje, tipo):
         """Muestra un cuadro de diálogo con el estilo adecuado"""
@@ -145,50 +143,9 @@ class ColumnSelector(QWidget):
         # Ajustar estilo según el tipo de mensaje
         if tipo == "warning":
             msg_box.setIcon(QMessageBox.Warning)
-            msg_box.setStyleSheet("""
-                QMessageBox {
-                    background-color: #333;
-                    color: white;
-                }
-                QLabel {
-                    font-size: 14px;  /* Aumentar el tamaño de la letra */
-                    color: white;
-                }
-                QPushButton {
-                    background-color: #555;
-                    color: white;
-                    border: 2px solid #FFFFFF;
-                    border-radius: 8px;
-                    padding: 10px;
-                    font-size: 14px;  /* Aumentar el tamaño de la letra */
-                }
-                QPushButton:hover {
-                    background-color: #777;
-                }
-            """)
+            
         elif tipo == "success":
             msg_box.setIcon(QMessageBox.Information)
-            msg_box.setStyleSheet("""
-                QMessageBox {
-                    background-color: #333;
-                    color: white;
-                }
-                QLabel {
-                    font-size: 14px;  /* Aumentar el tamaño de la letra */
-                    color: white;
-                }
-                QPushButton {
-                    background-color: #0078d4;
-                    color: white;
-                    border: 2px solid #FFFFFF;
-                    border-radius: 8px;
-                    padding: 10px;
-                    font-size: 14px;  /* Aumentar el tamaño de la letra */
-                }
-                QPushButton:hover {
-                    background-color: #005A9E;
-                }
-            """)
 
         msg_box.setWindowTitle(titulo)
         msg_box.setText(mensaje)

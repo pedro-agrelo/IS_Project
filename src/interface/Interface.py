@@ -1,5 +1,4 @@
 import sys
-import joblib  # Para cargar archivos .joblib
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QPushButton, QFileDialog, QLabel,
                              QVBoxLayout, QHBoxLayout, QWidget, QMessageBox)
 from PyQt5.QtGui import QFont, QPalette, QColor
@@ -9,17 +8,16 @@ from ColumnSelector import ColumnSelector
 from DataPreprocessor import DataPreprocessor
 from LinearModel import LinearModel
 
-class FileExplorerInterface(QMainWindow):
+class Interface(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle('File Explorer - CSV, Excel and SQLite')
+        self.setWindowTitle('Projecta')
         self.setGeometry(300, 150, 800, 600)  # Tamaño de la ventana
-        self.column_selector = ColumnSelector()
 
         # Configuración de la interfaz
         self.setup_ui()
         self.apply_styles()
-
+        
     def setup_ui(self):
         """Configura el diseño y widgets de la interfaz"""
         # Layout principal vertical
@@ -38,7 +36,7 @@ class FileExplorerInterface(QMainWindow):
         self.button.setFont(QFont("Arial", 16, QFont.Bold))  # Aumentar tamaño de letra
         self.button.clicked.connect(self.open_file_dialog)
         main_layout.addWidget(self.button, alignment=Qt.AlignCenter)
-
+        
         # Botón para cargar modelo
         self.load_model_button = QPushButton('Load Model (.joblib)')
         self.load_model_button.setFixedSize(300, 50)
@@ -139,8 +137,7 @@ class FileExplorerInterface(QMainWindow):
                 font-size: 16px;  /* Aumentar el tamaño de la letra */
             }
             QPushButton:hover {
-                background-color: #555555;
-            }
+                background-color: #555555;}
         """
         self.button.setStyleSheet(button_style)  # Botón de abrir archivos
         self.load_model_button.setStyleSheet(button_style)  # Botón para cargar el modelo
@@ -149,12 +146,6 @@ class FileExplorerInterface(QMainWindow):
         palette = QPalette()
         palette.setColor(QPalette.Window, QColor(30, 30, 30))
         self.setPalette(palette)
-
-    def show_message(self, title, message):
-        msg = QMessageBox()
-        msg.setWindowTitle(title)
-        msg.setText(message)
-        msg.exec_()
 
     def create_model(self):
         if self.linear_model_widget.create_model():
@@ -172,9 +163,8 @@ class FileExplorerInterface(QMainWindow):
             self.create_model_button.setVisible(False)
             self.linear_model_widget.setVisible(True)
     
-
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    window = FileExplorerInterface()
+    window = Interface()
     window.show()
     sys.exit(app.exec_())
