@@ -138,6 +138,8 @@ class LinearModel(QWidget):
         return True
     
     def plot_regression(self, entry_columns=None, target_column=None):
+            self.canvas = FigureCanvas()
+            self.plot_widget.layout().addWidget(self.canvas)
             # Usa las columnas seleccionadas si no se especifican
             if entry_columns is None or target_column is None:
                 entry_columns, target_column = self.column_selector.get_selected_columns()
