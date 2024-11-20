@@ -3,10 +3,10 @@ from PyQt5.QtWidgets import (QApplication, QMainWindow, QPushButton, QFileDialog
                              QVBoxLayout, QHBoxLayout, QWidget, QMessageBox)
 from PyQt5.QtGui import QFont, QPalette, QColor
 from PyQt5.QtCore import Qt
-from DataTable import DataTable
-from ColumnSelector import ColumnSelector
-from DataPreprocessor import DataPreprocessor
-from LinearModel import LinearModel
+from DataTable import DataTableModel, DataTableView, DataTableController
+from ColumnSelector import ColumnSelectorModel, ColumnSelectorView, ColumnSelectorController
+from DataPreprocessor import DataPreprocessorModel, DataPreprocessorView, DataPreprocessorController
+from LinearModel import LinearModelModel, LinearModelView, LinearModelController
 
 class Interface(QMainWindow):
     def __init__(self):
@@ -46,30 +46,41 @@ class Interface(QMainWindow):
         main_layout.addWidget(self.load_model_button, alignment=Qt.AlignCenter)
 
         # Tabla para mostrar los datos
-        self.table_widget = DataTable()
-        main_layout.addWidget(self.table_widget)
+        self.table_model = DataTableModel()
+        self.table_view = DataTableView()
+        self.table_controller = DataTableController(self.table_view, self.table_model)
+        main_layout.addWidget(self.table_view)
 
         # Layout horizontal para el selector de columnas y el preprocesador
         selector_preprocessor_layout = QHBoxLayout()
-        selector_preprocessor_layout.setContentsMargins(20, 0, 0, 0)  # Margen izquierdo de 20 píxeles
+        selector_preprocessor_layout.setContentsMargins(20, 0, 0, 20)  # Margen izquierdo de 20 píxeles
 
         # Selector de columnas
-        self.column_selector = ColumnSelector(self)
-        self.column_selector.setFixedWidth(800)  # Ajustar el ancho del selector de columnas
-        selector_preprocessor_layout.addWidget(self.column_selector)
+        self.column_selector_model = ColumnSelectorModel()
+        self.column_selector_view = ColumnSelectorView()
+        self.column_selector_controller = ColumnSelectorController(self.column_selector_model, self.column_selector_view)
+
+        self.column_selector_view.setFixedSize(800,400)  # Ajustar el ancho del selector de columnas
+        selector_preprocessor_layout.addWidget(self.column_selector_view)
 
         # Preprocesador
-        self.data_preprocessor = DataPreprocessor(self.table_widget, self.column_selector)
-        selector_preprocessor_layout.addWidget(self.data_preprocessor)
-        self.data_preprocessor.setVisible(False)  # Ocultamos el preprocesador hasta que se cargue un archivo
+        self.data_preprocessor_model = DataPreprocessorModel()
+        self.data_preprocessor_view = DataPreprocessorView()
+        self.data_preprocessor_controller = DataPreprocessorController(self.data_preprocessor_model, self.data_preprocessor_view)
+        self.data_preprocessor_view.empty_cells_button.clicked.connect(self.highlight_empty_cells)
+        self.data_preprocessor_view.apply_button.clicked.connect(self.apply_preprocess)
+        selector_preprocessor_layout.addWidget(self.data_preprocessor_view)
+        self.data_preprocessor_view.setVisible(False)  # Ocultamos el preprocesador hasta que se cargue un archivo
 
         # Agregar el layout horizontal al layout principal
         main_layout.addLayout(selector_preprocessor_layout)
 
         # Modelo lineal
-        self.linear_model_widget = LinearModel(self.table_widget, self.column_selector)
-        self.linear_model_widget.setVisible(False)
-        main_layout.addWidget(self.linear_model_widget)
+        self.linear_model_model = LinearModelModel(self.table_model.df)
+        self.linear_model_view = LinearModelView(self.linear_model_model)
+        self.linear_model_controller = LinearModelController(self.linear_model_model, self.linear_model_view)
+        self.linear_model_view.setVisible(False)
+        main_layout.addWidget(self.linear_model_view)
 
         # Botón para crear el modelo
         self.create_model_button = QPushButton("Create Linear Model")
@@ -100,28 +111,27 @@ class Interface(QMainWindow):
 
         if file_name:
             self.label.setText(f"<b>Selected file:</b> <br><i>{file_name}</i>")
-            if self.table_widget.load_file(file_name):
-                headers = [self.table_widget.horizontalHeaderItem(i).text() for i in range(self.table_widget.columnCount())]
-                self.column_selector.update_selectors(headers)
-                self.linear_model_widget.setVisible(False)
-                self.column_selector.setVisible(True)
-                self.data_preprocessor.setVisible(True) 
+            if self.table_controller.load_file(file_name):
+                headers = [self.table_view.horizontalHeaderItem(i).text() for i in range(self.table_view.columnCount())]
+                self.column_selector_controller.update_selectors(headers)
+                self.linear_model_view.setVisible(False)
+                self.column_selector_view.setVisible(True)
+                self.data_preprocessor_view.setVisible(True) 
                 self.create_model_button.setVisible(True) 
-                self.column_selector.confirm_button.setVisible(True)  # Mostrar el botón de confirmación
                 self.label.setStyleSheet("color: #FFFFFF;")
+                self.linear_model_model.df = self.table_model.df
+                self.data_preprocessor_model.df = self.table_model.df
 
             else:
-                self.column_selector.setVisible(False)
-                self.column_selector.confirm_button.setVisible(False)  # Ocultar el botón si no se carga el archivo
-                self.data_preprocessor.setVisible(False)
+                self.column_selector_view.setVisible(False)
+                self.data_preprocessor_view.setVisible(False)
                 self.create_model_button.setVisible(False)
                 self.show_empty_file_message()
         else:
-            self.table_widget.setVisible(False)
-            self.column_selector.setVisible(False)
-            self.data_preprocessor.setVisible(False)
+            self.table_view.setVisible(False)
+            self.column_selector_view.setVisible(False)
+            self.data_preprocessor_view.setVisible(False)
             self.create_model_button.setVisible(False)
-            self.column_selector.confirm_button.setVisible(False)  # Ocultar el botón si no hay archivo
             self.label.setText("<b>No file selected</b>")
             self.label.setStyleSheet("color: #FF6347;")
 
@@ -141,6 +151,7 @@ class Interface(QMainWindow):
         """
         self.button.setStyleSheet(button_style)  # Botón de abrir archivos
         self.load_model_button.setStyleSheet(button_style)  # Botón para cargar el modelo
+        self.data_preprocessor_view.empty_cells_button.setStyleSheet(button_style) 
 
         # Estilos de la ventana y paleta de colores
         palette = QPalette()
@@ -148,20 +159,40 @@ class Interface(QMainWindow):
         self.setPalette(palette)
 
     def create_model(self):
-        if self.linear_model_widget.create_model():
-            self.table_widget.setVisible(False)
-            self.column_selector.setVisible(False)
-            self.data_preprocessor.setVisible(False)
+        entry_columns, target_column = self.column_selector_view.get_selected_columns()
+        if self.linear_model_controller.create_model(entry_columns, target_column):
+            self.table_view.setVisible(False)
+            self.column_selector_view.setVisible(False)
+            self.data_preprocessor_view.setVisible(False)
             self.create_model_button.setVisible(False)
-            self.linear_model_widget.setVisible(True)
+            self.linear_model_view.setVisible(True)
 
     def load_model(self):
-        if self.linear_model_widget.load_model():
-            self.table_widget.setVisible(False)
-            self.column_selector.setVisible(False)
-            self.data_preprocessor.setVisible(False)
+        if self.linear_model_controller.load_model():
+            self.table_view.setVisible(False)
+            self.column_selector_view.setVisible(False)
+            self.data_preprocessor_view.setVisible(False)
             self.create_model_button.setVisible(False)
-            self.linear_model_widget.setVisible(True)
+            self.linear_model_view.setVisible(True)
+
+    def apply_preprocess(self):
+        entry_columns, target_column = self.column_selector_controller.get_selected_columns()
+        if self.data_preprocessor_controller.apply_preprocessing(entry_columns, target_column):
+            self.table_controller.update_table(self.data_preprocessor_model.df)
+
+    def highlight_empty_cells(self):
+        entry_columns, target_column = self.column_selector_controller.get_selected_columns()
+        if not entry_columns and not target_column:
+            self.view.show_message("Warning", "Please select columns first.", "warning")
+            return False
+        column_indices, missing_cells = self.data_preprocessor_controller.highlight_empty_cells(entry_columns, target_column)
+
+        for i in range(self.table_view.rowCount()):
+            for j in column_indices:
+                item = self.table_view.item(i, j)
+                if item and (item.text() == "" or item.text().lower() == "nan"):
+                    item.setBackground(QColor(255, 0, 0, 150))  # Rojo transparente para destacar
+
     
 if __name__ == '__main__':
     app = QApplication(sys.argv)

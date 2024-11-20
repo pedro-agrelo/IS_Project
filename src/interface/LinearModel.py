@@ -8,22 +8,112 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 
-class LinearModel(QWidget):
-    def __init__(self, table_widget, column_selector, parent=None):
+class LinearModelModel():
+    def __init__(self, df):
+        self.df = df
+        self.entry_columns = None
+        self.target_column = None
+        self.model = None
+        self.description = ""
+        self.formula = ""
+        self.errors = ""
+
+    def create_model(self, entry_columns, target_column):
+        """Crea el modelo de regresión lineal con las columnas seleccionadas y muestra los resultados."""
+        self.entry_columns = entry_columns
+        self.target_column = target_column
+        if not self.entry_columns or not self.target_column:
+            return False
+        
+        if self.df[self.entry_columns].isnull().any().any() or self.df[self.target_column].isnull().any():
+            return False
+
+        X = self.df[self.entry_columns].values
+        y = self.df[self.target_column].values
+
+        # Dividir los datos en conjuntos de entrenamiento y prueba
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+
+        # Crear y entrenar el modelo de regresión lineal
+        self.model = LinearRegression()
+        self.model.fit(X_train, y_train)
+
+        # Generar la fórmula de regresión
+        self.formula = f"{self.target_column} = " + " + ".join(
+            [f"{coef:.3f}*{col}" for coef, col in zip(self.model.coef_, self.entry_columns)]
+        ) + f" + {self.model.intercept_:.3f}"
+
+        # Calcular y mostrar métricas de error en los datos de prueba
+        y_pred_train = self.model.predict(X_train)
+        y_pred_test = self.model.predict(X_test)
+        
+        # Métricas en entrenamiento
+        mae_train = mean_absolute_error(y_train, y_pred_train)
+        rmse_train = np.sqrt(root_mean_squared_error(y_train, y_pred_train))
+        r2_train = r2_score(y_train, y_pred_train)
+        
+        # Métricas en prueba
+        mae_test = mean_absolute_error(y_test, y_pred_test)
+        rmse_test = np.sqrt(root_mean_squared_error(y_test, y_pred_test))
+        r2_test = r2_score(y_test, y_pred_test)
+
+        # Mostrar métricas en los datos de prueba
+        self.description = ""
+        self.error = str(f"Training MAE: {mae_train:.3f}, RMSE: {rmse_train:.3f}, R²: {r2_train:.3f}\n" + f"Test MAE: {mae_test:.3f}, RMSE: {rmse_test:.3f}, R²: {r2_test:.3f}")
+        return True
+    
+    def plot_regression(self):
+            # Usa las columnas seleccionadas si no se especifican
+            if not self.entry_columns or len(self.entry_columns) != 1:
+                return False
+
+            X = self.df[self.entry_columns].values
+            y = self.df[self.target_column].values
+            y_pred = self.model.predict(X)
+            # Configura la gráfica
+            fig, ax = plt.subplots()
+            ax.scatter(X, y, color='blue', label="Actual Data")
+            ax.plot(X, y_pred, color='red', label="Regression Line")
+            ax.set_xlabel(self.entry_columns[0])
+            ax.set_ylabel(self.target_column)
+            ax.legend()
+            return fig
+    
+    def save_model(self, file_path):
+        """Abre un diálogo para guardar el modelo y los datos asociados en el archivo seleccionado por el usuario."""
+        # Empaqueta los datos del modelo para guardar
+        model_data = {"model": self.model,"input_columns": self.entry_columns,"output_column": self.target_column,
+                      "errors":  self.errors, "description": self.description, "formula": self.formula, "df":self.df}
+
+        # Intenta guardar el archivo y maneja errores
+        joblib.dump(model_data, file_path)
+    
+    def load_model(self, file_name):
+        """Carga el modelo .joblib y muestra los datos correspondientes"""
+        if file_name:
+            model_data = joblib.load(file_name)
+            self.model = model_data["model"]
+            self.df = model_data["df"]
+            self.entry_columns = model_data["input_columns"]
+            self.target_column = model_data["output_column"]
+            self.formula = model_data["formula"]
+            self.errors = model_data["errors"]
+            self.description = model_data["description"]
+            return True
+        else:
+            return False
+        
+class LinearModelView(QWidget):
+    def __init__(self, model, parent=None):
         """
         Clase encargada de crear un modelo de regresión lineal.
         """
         super().__init__(parent)
-        self.table_widget = table_widget
-        self.column_selector = column_selector
-        self.model = None
-        self.init_ui()
+        self.model = model
 
-    def init_ui(self):
-        """Configura la interfaz gráfica para el modelo lineal."""
         layout = QVBoxLayout()
         
-        # Widget para incrustar el gráfico
+        # Widget para añadir el gráfico
         self.plot_widget = QWidget(self)
         plot_layout = QVBoxLayout(self.plot_widget)  # Layout para la sección del gráfico
         self.plot_widget.setLayout(plot_layout)
@@ -73,198 +163,104 @@ class LinearModel(QWidget):
         # Botón para guardar la descripción del modelo
         self.save_description_button = QPushButton("Save Description")
         self.save_description_button.setFont(QFont("Arial", 12, QFont.Bold))
-        self.save_description_button.clicked.connect(self.save_description)
         layout.addWidget(self.save_description_button)
 
         # Botón para guardar la descripción del modelo
         self.save_model_button = QPushButton("Save Model")
         self.save_model_button.setFont(QFont("Arial", 12, QFont.Bold))
-        self.save_model_button.clicked.connect(self.save_model)
         layout.addWidget(self.save_model_button)
 
         self.setLayout(layout)
 
-    def create_model(self):
-        """Crea el modelo de regresión lineal con las columnas seleccionadas y muestra los resultados."""
-        self.description_text.clear()
-        self.description_text.setVisible(True)
-        self.saved_description_label.clear()
-        
-        entry_columns, target_column = self.column_selector.get_selected_columns()
-        if not entry_columns or not target_column:
-            QMessageBox.warning(self, "Warning", "Please select entry and target columns.")
-            return
-        
-        if self.table_widget.df[entry_columns].isnull().any().any() or self.table_widget.df[target_column].isnull().any():
-            QMessageBox.warning(self, "Warning", "There are missing values in the selected columns.")
-            return
 
-        df = self.table_widget.df
-        X = df[entry_columns].values
-        y = df[target_column].values
+    def set_formula(self, formula):
+        """Muestra la fórmula del modelo en la vista."""
+        self.formula_label.setText(f"Linear Regression Formula: {formula}")
 
-        # Dividir los datos en conjuntos de entrenamiento y prueba
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+    def set_errors(self, errors):
+        """Muestra las métricas de error en la vista."""
+        self.error_label.setText(errors)
 
-        # Crear y entrenar el modelo de regresión lineal
-        self.model = LinearRegression()
-        self.model.fit(X_train, y_train)
+    def set_description(self, description):
+        """Muestra la descripción ingresada por el usuario."""
+        self.saved_description_label.setText(f"Model Description:\n{description}")
 
-        # Generar la fórmula de regresión
-        formula = f"{target_column} = " + " + ".join(
-            [f"{coef:.3f}*{col}" for coef, col in zip(self.model.coef_, entry_columns)]
-        ) + f" + {self.model.intercept_:.3f}"
-        self.formula_label.setText("Linear Regression Formula: " + formula)
+class LinearModelController():
+    def __init__(self, model, view):
+        self.model = model
+        self.view = view
 
-        # Calcular y mostrar métricas de error en los datos de prueba
-        y_pred_train = self.model.predict(X_train)
-        y_pred_test = self.model.predict(X_test)
-        
-        # Métricas en entrenamiento
-        mae_train = mean_absolute_error(y_train, y_pred_train)
-        rmse_train = np.sqrt(root_mean_squared_error(y_train, y_pred_train))
-        r2_train = r2_score(y_train, y_pred_train)
-        
-        # Métricas en prueba
-        mae_test = mean_absolute_error(y_test, y_pred_test)
-        rmse_test = np.sqrt(root_mean_squared_error(y_test, y_pred_test))
-        r2_test = r2_score(y_test, y_pred_test)
+        # Conectar botones con acciones
+        self.view.save_description_button.clicked.connect(self.save_description)
+        self.view.save_model_button.clicked.connect(self.save_model)
 
-        # Mostrar métricas en los datos de prueba
-        self.error_label.setText(f"Training MAE: {mae_train:.3f}, RMSE: {rmse_train:.3f}, R²: {r2_train:.3f}\n"
-                                 f"Test MAE: {mae_test:.3f}, RMSE: {rmse_test:.3f}, R²: {r2_test:.3f}")
-        
-        self.plot_regression()
-        return True
-    
-    def plot_regression(self, entry_columns=None, target_column=None):
-            self.canvas = FigureCanvas()
-            self.plot_widget.layout().addWidget(self.canvas)
-            # Usa las columnas seleccionadas si no se especifican
-            if entry_columns is None or target_column is None:
-                entry_columns, target_column = self.column_selector.get_selected_columns()
+    def create_model(self, entry_columns, target_column):
+        if self.model.create_model(entry_columns, target_column):
+            self.view.description_text.clear()
+            for i in reversed(range(self.view.plot_widget.layout().count())):
+                    widget_to_remove = self.view.plot_widget.layout().itemAt(i).widget()
+                    widget_to_remove.setParent(None)
 
-            if not entry_columns or len(entry_columns) != 1:
-                # Agregar el nuevo gráfico
-                self.plot_widget.layout().removeWidget(self.canvas)
-                self.canvas = FigureCanvas()
-                self.plot_widget.layout().addWidget(self.canvas)
-                self.canvas.draw()  # Dibuja el gráfico
-                QMessageBox.warning(self, "Warning", "Please select exactly one entry column for plotting.")
-                return False
+            if len(entry_columns) == 1:
+                fig = self.model.plot_regression()
+                self.view.plot_widget.layout().addWidget(FigureCanvas(fig))
 
-            X = self.table_widget.df[entry_columns].values
-            y = self.table_widget.df[target_column].values
-            y_pred = self.model.predict(X)
-            # Configura la gráfica
-            fig, ax = plt.subplots()
-            ax.scatter(X, y, color='blue', label="Actual Data")
-            ax.plot(X, y_pred, color='red', label="Regression Line")
-            ax.set_xlabel(entry_columns[0])
-            ax.set_ylabel(target_column)
-            ax.legend()
-            # Limpia el gráfico previo en el layout
-            for i in reversed(range(self.plot_widget.layout().count())):
-                widget_to_remove = self.plot_widget.layout().itemAt(i).widget()
-                widget_to_remove.setParent(None) 
-            # Agregar el nuevo gráfico
-            self.canvas = FigureCanvas(fig)
-            self.plot_widget.layout().addWidget(self.canvas)
-            self.canvas.draw()  # Dibuja el gráfico
+            self.view.set_formula(self.model.formula)
+            self.view.set_errors(self.model.errors)
+            self.view.set_description(self.model.description)
+
+            self.view.description_text.setVisible(True)
+            self.view.save_description_button.setVisible(True)
+            self.view.save_model_button.setVisible(True)
+            return True
 
     def save_description(self):
-            """Guarda y muestra la descripción ingresada por el usuario."""
-            description = self.description_text.toPlainText().strip()
-            if not description:
-                QMessageBox.warning(self, "Warning", "Please enter a description before saving.")
-                return
-
-            # Mostrar la información del modelo en el recuadro
-            self.saved_description_label.setText(f"Model Description:\n{description}")
+        """Guardar la descripción proporcionada por el usuario"""
+        description = self.view.description_text.toPlainText().strip()
+        self.model.description = description
+        self.view.set_description(description)
 
     def save_model(self):
-        """Abre un diálogo para guardar el modelo y los datos asociados en el archivo seleccionado por el usuario."""
-        input_columns, output_column = self.column_selector.get_selected_columns()
-        description = self.description_text.toPlainText().strip()
-        errors = self.error_label.text()
-
-        # Diálogo para seleccionar el archivo de guardado
-        file_path, _ = QFileDialog.getSaveFileName(self, "Guardar Modelo", "", "Model Files (*.joblib)")
-
-        # Verifica si se seleccionó un archivo
-        if not file_path:
-            self.show_message("Cancelado", "No se seleccionó ningún archivo.", "warning")
-            return
-
-        # Empaqueta los datos del modelo para guardar
-        model_data = {"model": self.model,"input_columns": input_columns,"output_column": output_column,
-                      "errors":  errors, "description": description,
-                      "formula": self.get_formula(input_columns, output_column),
-                      "df":self.table_widget.df}
-
-        # Intenta guardar el archivo y maneja errores
-        try:
-            joblib.dump(model_data, file_path)
-            self.show_message("Éxito", "Modelo guardado exitosamente.", "success")
-
-        except Exception as e:
-            self.show_message("Error", f"No se pudo guardar el modelo: {e}", "error")
-
-    def get_formula(self, input_columns, output_column):
-        """Genera la fórmula del modelo de regresión lineal como una cadena de texto."""
-        coef_str = " + ".join(f"{coef:.3f} * {col}" for coef, col in zip(self.model.coef_, input_columns))
-        formula = f"{output_column} = {self.model.intercept_:.3f} + {coef_str}"
-        return formula
-    
-    def load_model(self):
-        """Carga el modelo .joblib y muestra los datos correspondientes"""
-        options = QFileDialog.Options()
-        file_name, _ = QFileDialog.getOpenFileName(self, "Select Model File", "", "Archivos Joblib (*.joblib)", options=options)
-
-        if file_name:
+        """Guardar el modelo entrenado en un archivo"""
+        file_path, _ = QFileDialog.getSaveFileName(self.view, "Save Model", "", "Model Files (*.joblib)")
+        if file_path:
             try:
-                model_data = joblib.load(file_name)
-                self.show_message("Éxito", f"Modelo cargado correctamente desde: {file_name}", "success")
-                self.display_data(model_data)
+                self.model.save_model(file_path)
+                self.show_message("Success", "Model saved successfully!", "success")
+            except Exception as e:
+                self.show_message("Error", f"Failed to save model: {str(e)}", "error")
+
+    def load_model(self):
+        """Cargar el modelo desde un archivo .joblib"""
+        file_path, _ = QFileDialog.getOpenFileName(self.view, "Load Model", "", "Model Files (*.joblib)")
+        if file_path:
+            try:
+                self.model.load_model(file_path)
+                self.view.set_formula(self.model.formula)
+                self.view.set_errors(self.model.errors)
+                self.view.set_description(self.model.description)
+
+                for i in reversed(range(self.view.plot_widget.layout().count())):
+                    widget_to_remove = self.view.plot_widget.layout().itemAt(i).widget()
+                    widget_to_remove.setParent(None) 
+                fig = self.model.plot_regression()
+                self.view.plot_widget.layout().addWidget(FigureCanvas(fig))
+
+                self.view.description_text.setVisible(False)
+                self.view.save_description_button.setVisible(False)
+                self.view.save_model_button.setVisible(False)
+
+                self.show_message("Success", "Model loaded successfully!", "success")
                 return True
             except Exception as e:
-                self.show_message("Error", f"Hubo un problema al cargar el modelo: {str(e)}", "error")
-                return True  
-        else:
-            return False
+                self.show_message("Error", f"Failed to load model: {str(e)}", "error")
+                return False
 
-    def display_data(self, data):
-        """ Muestra los datos cargados (si es un DataFrame) """
-        # Establecer el modelo cargado
-        self.model = data["model"]
-        # Establecer el df
-        self.table_widget.df = data["df"]
-        # Mostrar la fórmula
-        self.formula_label.setText(f"Linear Regression Formula:\n{data['formula']}")
-        # Mostrar métricas de error
-        self.error_label.setText(data["errors"])
-        # Mostrar la descripción
-        self.saved_description_label.setText(f"Model Description:\n{data['description']}")
-        # ocultar caja de texto y botones de guardado
-        self.description_text.setVisible(False)
-        self.save_description_button.setVisible(False)
-        self.save_model_button.setVisible(False)
-
-        # Actualizar el gráfico si hay una sola columna de entrada
-        if len(data["input_columns"]) == 1:
-            self.plot_regression(entry_columns = data["input_columns"], target_column = data["output_column"])
-        else:
-            self.show_message(self, "Información", 
-                                    "El gráfico solo puede generarse si el modelo tiene una única columna de entrada.",
-                                    "warning")
-   
     def show_message(self, title, message, msg_type):
-        """Muestra un mensaje de confirmación o error según el tipo especificado."""
-        msg_box = QMessageBox(self)
+        """Mostrar mensaje en la vista"""
+        msg_box = QMessageBox(self.view)
         if msg_type == "success":
             msg_box.setIcon(QMessageBox.Information)
-        elif msg_type == "warning":
-            msg_box.setIcon(QMessageBox.Warning)
         elif msg_type == "error":
             msg_box.setIcon(QMessageBox.Critical)
         msg_box.setWindowTitle(title)

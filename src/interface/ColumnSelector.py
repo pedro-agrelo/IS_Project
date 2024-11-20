@@ -3,7 +3,26 @@ from PyQt5.QtWidgets import (QGroupBox, QListWidget, QLabel,QVBoxLayout, QHBoxLa
 from PyQt5.QtGui import QFont
 from PyQt5.QtCore import Qt
 
-class ColumnSelector(QWidget):
+class ColumnSelectorModel:
+    def __init__(self):
+        self.entry_columns = []  # Almacenará las columnas de entrada
+        self.target_column = None  # Almacenará la columna objetivo
+    
+    def set_columns(self, entry_columns, target_column):
+        """Establece las columnas de entrada y la columna objetivo."""
+        self.entry_columns = entry_columns
+        self.target_column = target_column
+
+    def get_columns(self):
+        """Devuelve las columnas de entrada y la columna objetivo."""
+        return self.entry_columns, self.target_column
+    
+    def validate_selection(self):
+        """Valida que haya columnas seleccionadas tanto para entrada como para salida."""
+        return len(self.entry_columns) > 0 and self.target_column is not None
+
+
+class ColumnSelectorView(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setVisible(False)
@@ -20,12 +39,10 @@ class ColumnSelector(QWidget):
         # Agregar botones de radio para seleccionar modo
         self.single_selection_radio = QRadioButton("Single Selection")
         self.single_selection_radio.setChecked(True)  # Por defecto selecciona simple
-        self.single_selection_radio.toggled.connect(self.update_selection_mode)
         self.multiple_selection_radio = QRadioButton("Multiple Selection")
         self.multiple_selection_radio.toggled.connect(self.update_selection_mode)
         self.single_selection_radio.setStyleSheet("color: white;")
         self.multiple_selection_radio.setStyleSheet("color: white;")
-        
 
         self.list_widget_entry = QListWidget(self)
         self.list_widget_entry.setSelectionMode(QAbstractItemView.SingleSelection)
@@ -52,7 +69,7 @@ class ColumnSelector(QWidget):
         self.target_group = QGroupBox("Target Column")
         self.target_group.setStyleSheet("QGroupBox { font-weight: bold; color: #99FFFF; }")  # Cambiar color y peso de la fuente
         self.target_group.setMaximumWidth(400)  # Limitar el ancho del selector a 400px
-        self.target_group.setMaximumHeight(200)  # Limitar el ancho del selector a 400px
+        self.target_group.setMaximumHeight(200)  # Limitar el alto
         self.target_layout = QVBoxLayout(self.target_group)
         self.list_widget_target = QListWidget(self)
         self.list_widget_target.setMaximumWidth(400)  # Limitar el ancho del selector a 400px
@@ -64,8 +81,7 @@ class ColumnSelector(QWidget):
             }
             QListWidget {
                 background-color: #2E2E2E;  /* Fondo gris oscuro */
-                color: white;  /* Texto blanco */}
-            """)
+                color: white;  /* Texto blanco */}""")
 
         # Añadir el grupo al layout principal
         self.selectors_layout.addWidget(self.target_group)
@@ -75,9 +91,7 @@ class ColumnSelector(QWidget):
         # Botón para confirmar selección (No visible al principio)
         self.confirm_button = QPushButton('Confirm columns selection')
         self.confirm_button.setFixedSize(300, 50)
-        self.confirm_button.setVisible(False)  # Ocultar el botón al inicio
         self.confirm_button.setFont(QFont("Arial", 16, QFont.Bold))  # Aumentar tamaño de letra
-        self.confirm_button.clicked.connect(self.confirm_selection)
         self.confirm_button.setStyleSheet("""
             QPushButton {
                 background-color: #333333;
@@ -87,26 +101,16 @@ class ColumnSelector(QWidget):
                 font-size: 16px;  /* Aumentar el tamaño de la letra */
             }
             QPushButton:hover {
-                background-color: #555555;
-            }""")
+                background-color: #555555;}""")
         
         self.layout.addLayout(self.selectors_layout)
         self.layout.addWidget(self.confirm_button, alignment=Qt.AlignCenter)
 
-    def update_selection_mode(self):
-        """Actualiza el modo de selección de columnas según el botón de radio seleccionado."""
-        if self.single_selection_radio.isChecked():
-            self.list_widget_entry.setSelectionMode(QAbstractItemView.SingleSelection)
-  # Solo un elemento seleccionado
-        else:
-            self.list_widget_entry.setSelectionMode(QAbstractItemView.MultiSelection)
-   # Permitir múltiples selecciones
-
     def create_label(self, text):
         """Crea una etiqueta con estilos personalizados"""
         label = QLabel(text)
-        label.setFont(QFont("Arial", 10, QFont.Bold))  # Cambiar tipo y tamaño de fuente
-        label.setStyleSheet("color: #FFFFFF;")  # Cambiar color a un amarillo claro
+        label.setFont(QFont("Arial", 10, QFont.Bold))
+        label.setStyleSheet("color: #FFFFFF;")
         return label
 
     def update_selectors(self, columns):
@@ -117,36 +121,56 @@ class ColumnSelector(QWidget):
         self.list_widget_target.addItems(columns)
 
     def get_selected_columns(self):
-        """Devuelve las columnas de entrada (features) seleccionadas y la columna de salida (target)"""
-        # Obtener todas las columnas seleccionadas para las entradas (selección múltiple)
+        """Devuelve las columnas de entrada seleccionadas y la columna de salida"""
         input_columns = [item.text() for item in self.list_widget_entry.selectedItems()]
-        
-        # Obtener la columna de salida (solo una)
         target_column = self.list_widget_target.currentItem().text() if self.list_widget_target.currentItem() else None
-        
         return input_columns, target_column
     
-    def confirm_selection(self):
-        """Confirma la selección de columnas de entrada y salida"""
-        entradas, salida = self.get_selected_columns()
-        entradas_str = ', '.join(entradas)
-
-        if not entradas or not salida:
-            self.show_message("Error", "Select at least one entry column and one target column.", "warning")
+    def update_selection_mode(self):
+        """Actualiza el modo de selección de columnas según el botón de radio seleccionado."""
+        if self.single_selection_radio.isChecked():
+            self.list_widget_entry.setSelectionMode(QAbstractItemView.SingleSelection)
+  # Solo un elemento seleccionado
         else:
-            self.show_message("Success", f"Selected columns:\nEnter: {entradas_str}\nObjetive: {salida}", "success")
+            self.list_widget_entry.setSelectionMode(QAbstractItemView.MultiSelection)
+   # Permitir múltiples selecciones
 
-    def show_message(self, titulo, mensaje, tipo):
-        """Muestra un cuadro de diálogo con el estilo adecuado"""
+    def show_message(self, title, message, msg_type):
+        """Muestra un cuadro de mensaje con el estilo adecuado"""
         msg_box = QMessageBox(self)
-
-        # Ajustar estilo según el tipo de mensaje
-        if tipo == "warning":
+        if msg_type == "warning":
             msg_box.setIcon(QMessageBox.Warning)
-            
-        elif tipo == "success":
+        elif msg_type == "success":
             msg_box.setIcon(QMessageBox.Information)
 
-        msg_box.setWindowTitle(titulo)
-        msg_box.setText(mensaje)
+        msg_box.setWindowTitle(title)
+        msg_box.setText(message)
         msg_box.exec_()
+
+
+class ColumnSelectorController:
+    def __init__(self, model, view):
+        self.model = model  # El modelo contiene los datos
+        self.view = view    # La vista muestra los datos al usuario
+
+        self.view.confirm_button.clicked.connect(self.confirm_selection)
+
+    def update_selectors(self, columns):
+        """Actualiza los selectores con las columnas disponibles"""
+        self.view.update_selectors(columns)
+
+    def get_selected_columns(self):
+        """Obtiene las columnas seleccionadas y las pasa al modelo"""
+        input_columns, target_column = self.view.get_selected_columns()
+        self.model.set_columns(input_columns, target_column)
+        return input_columns, target_column
+
+    def confirm_selection(self):
+        """Confirma la selección de columnas de entrada y salida"""
+        self.get_selected_columns()
+        if self.model.validate_selection():
+            entradas, salida = self.model.get_columns()
+            entradas_str = ', '.join(entradas)
+            self.view.show_message("Success", f"Selected columns:\nEnter: {entradas_str}\nTarget: {salida}", "success")
+        else:
+            self.view.show_message("Error", "Select at least one entry column and one target column.", "warning")
