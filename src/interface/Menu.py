@@ -1,16 +1,21 @@
-from PyQt5.QtWidgets import QDockWidget, QVBoxLayout, QListWidget, QListWidgetItem, QWidget
+from PyQt5.QtWidgets import QDockWidget, QVBoxLayout, QListWidget, QListWidgetItem, QWidget, QLabel
 from PyQt5.QtGui import QFont
 from PyQt5.QtCore import Qt
 
 class Menu(QDockWidget):
     def __init__(self, parent=None):
-        super().__init__("", parent)
+        super().__init__(parent)
         self.setAllowedAreas(Qt.LeftDockWidgetArea)
+        self.setWindowFlags(Qt.FramelessWindowHint)
+        self.setFeatures(QDockWidget.NoDockWidgetFeatures)
+
+        # Crear una barra de título personalizada
+        self.init_title_bar()
 
         # Create a container for the menu
         self.container = QWidget()
         self.layout = QVBoxLayout(self.container)
-        self.layout.setContentsMargins(10, 10, 10, 10)
+        self.layout.setContentsMargins(0, 10, 0, 0)
 
         # Create a list of menu options
         self.menu_list = QListWidget()
@@ -44,6 +49,23 @@ class Menu(QDockWidget):
 
         # Reference to the parent for interaction
         self.parent = parent
+
+    def init_title_bar(self):
+        """Crea una barra de título personalizada"""
+        title_bar = QWidget(self)
+        layout = QVBoxLayout()
+        layout.setContentsMargins(0, 10, 0, 10)  # Sin márgenes
+
+        # Etiqueta con el texto del título
+        title_label = QLabel("MENU")
+        title_label.setAlignment(Qt.AlignCenter)
+        title_label.setFont(QFont("Arial", 12, QFont.Bold))
+        title_label.setStyleSheet("color: white;")  # Texto blanco
+
+        layout.addWidget(title_label)
+        title_bar.setLayout(layout)
+        title_bar.setStyleSheet("background-color: #333333;")  # Fondo oscuro
+        self.setTitleBarWidget(title_bar)
 
     def handle_selection(self, item):
         """Handle selection based on the clicked menu item."""

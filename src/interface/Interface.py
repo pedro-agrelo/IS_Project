@@ -27,7 +27,7 @@ class Interface(QMainWindow):
         # Persistent toggle button to show/hide the menu
         self.menu_toggle_button = QPushButton("≡")
         self.menu_toggle_button.setFixedSize(60, 30)
-        self.menu_toggle_button.setFont(QFont("Arial", 12, QFont.Bold))
+        self.menu_toggle_button.setFont(QFont("Arial", 16, QFont.Bold))
         self.menu_toggle_button.setStyleSheet("""
             QPushButton {
                 background-color: transparent;  /* Make the background transparent */
@@ -100,6 +100,7 @@ class Interface(QMainWindow):
 
         # Configurar el menú lateral
         self.menu = Menu(self)
+        self.menu.hide()
         self.addDockWidget(Qt.LeftDockWidgetArea, self.menu)
 
 
@@ -110,8 +111,7 @@ class Interface(QMainWindow):
     def toggle_menu_visibility(self):
         """Toggle the visibility of the menu."""
         if self.menu.isVisible():
-            self.menu.hide()
-            
+            self.menu.hide()    
         else:
             self.menu.show()
 
