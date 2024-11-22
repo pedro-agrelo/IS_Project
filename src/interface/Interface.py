@@ -193,7 +193,16 @@ class Interface(QMainWindow):
                 if item and (item.text() == "" or item.text().lower() == "nan"):
                     item.setBackground(QColor(255, 0, 0, 150))  # Rojo transparente para destacar
 
-    
+    def toggle_menu(self):
+        selected_option = self.menu.menu_list.currentItem().text()
+        # Llamar a la función correspondiente según el texto del elemento
+        if selected_option == "Ir a la guía de usuario":
+            return
+        elif selected_option == "Crear un modelo":
+            self.create_model()
+        elif selected_option == "Cargar un modelo":
+            self.load_model()
+  
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     window = Interface()
