@@ -107,10 +107,14 @@ class Interface(QMainWindow):
     def open_user_guide(self):
         """Muestra la guía de usuario"""
         QMessageBox.information(self, "User Guide", "✨ **Welcome to our application.** ✨\n\n"
-            "1 Upload the file from the menu with 'Open File Explorer' or open another previously made model with 'Load Model'.\n"
-            "2 Select and preprocess the columns.\n"
-            "3 Create the model and make a prediction.\n"
-            "4 Add a description and save the model.\n\n"
+            "1- CREATE A NEW MODEL:\nTo create a new model select the option in the top left menu and select "
+                "the data that you are going to work with.\n\nThen the preprocess screen will appear, here you must "
+                "select the input and outputs columns and apply the preprocess to them.\n\nOnce you finish you can "
+                "create the model by pressing the button on the bottom.\n\nFinally, you will see a  graphic of the model, "
+                "the most important information about it and a prediction area.\n\nYou can also add a description "
+                "to your model and save it by using the buttons Save Description and Save Model.\n\n"
+            "2- LOAD A MODEL:\n Just select the file with the model and it will load the same screen as when it was"
+                " created but you cant modify it.\n\n"
             "🎉 Enjoy experimenting with data! 🎉", QMessageBox.Ok)
 
     def toggle_menu_visibility(self):
