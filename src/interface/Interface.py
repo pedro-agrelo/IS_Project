@@ -7,6 +7,7 @@ from DataTable import DataTableModel, DataTableView, DataTableController
 from ColumnSelector import ColumnSelectorModel, ColumnSelectorView, ColumnSelectorController
 from DataPreprocessor import DataPreprocessorModel, DataPreprocessorView, DataPreprocessorController
 from LinearModel import LinearModelModel, LinearModelView, LinearModelController
+from Menu import Menu
 
 class Interface(QMainWindow):
     def __init__(self):
@@ -23,27 +24,30 @@ class Interface(QMainWindow):
         # Layout principal vertical
         main_layout = QVBoxLayout()
 
+        # Persistent toggle button to show/hide the menu
+        self.menu_toggle_button = QPushButton("≡")
+        self.menu_toggle_button.setFixedSize(60, 30)
+        self.menu_toggle_button.setFont(QFont("Arial", 12, QFont.Bold))
+        self.menu_toggle_button.setStyleSheet("""
+            QPushButton {
+                background-color: transparent;  /* Make the background transparent */
+                color: white;                    /* White text */
+                border: none;                    /* Remove the border */
+                padding: 5px;                    /* Add some padding around the text */
+            }
+            QPushButton:hover {
+                background-color: rgba(255, 255, 255, 0.2);  /* Light hover effect */
+            }
+        """)
+        self.menu_toggle_button.clicked.connect(self.toggle_menu_visibility)
+        main_layout.addWidget(self.menu_toggle_button, alignment=Qt.AlignLeft)
+
         # Etiqueta para mostrar el mensaje inicial
         self.label = QLabel("Select a CSV, Excel or SQLite file")
         self.label.setAlignment(Qt.AlignCenter)
         self.label.setFont(QFont("Arial", 14))
         self.label.setStyleSheet("color: white;")
         main_layout.addWidget(self.label)
-
-        # Botón para abrir el explorador de archivos
-        self.button = QPushButton('Open File Explorer')
-        self.button.setFixedSize(300, 50)
-        self.button.setFont(QFont("Arial", 16, QFont.Bold))  # Aumentar tamaño de letra
-        self.button.clicked.connect(self.open_file_dialog)
-        main_layout.addWidget(self.button, alignment=Qt.AlignCenter)
-        
-        # Botón para cargar modelo
-        self.load_model_button = QPushButton('Load Model (.joblib)')
-        self.load_model_button.setFixedSize(300, 50)
-        self.load_model_button.setFont(QFont("Arial", 16, QFont.Bold))
-        self.load_model_button.clicked.connect(self.load_model)
-        self.load_model_button.setVisible(True)  # Visible al principio
-        main_layout.addWidget(self.load_model_button, alignment=Qt.AlignCenter)
 
         # Tabla para mostrar los datos
         self.table_model = DataTableModel()
@@ -93,6 +97,23 @@ class Interface(QMainWindow):
         container = QWidget()
         container.setLayout(main_layout)
         self.setCentralWidget(container)
+
+        # Configurar el menú lateral
+        self.menu = Menu(self)
+        self.addDockWidget(Qt.LeftDockWidgetArea, self.menu)
+
+
+    def open_user_guide(self):
+        """Muestra la guía de usuario"""
+        QMessageBox.information(self, "User Guide", "Here is a guide on how to use this application!", QMessageBox.Ok)
+
+    def toggle_menu_visibility(self):
+        """Toggle the visibility of the menu."""
+        if self.menu.isVisible():
+            self.menu.hide()
+            
+        else:
+            self.menu.show()
 
     def show_empty_file_message(self):
         """Muestra un mensaje de advertencia si el archivo está vacío"""
@@ -149,8 +170,6 @@ class Interface(QMainWindow):
             QPushButton:hover {
                 background-color: #555555;}
         """
-        self.button.setStyleSheet(button_style)  # Botón de abrir archivos
-        self.load_model_button.setStyleSheet(button_style)  # Botón para cargar el modelo
         self.data_preprocessor_view.empty_cells_button.setStyleSheet(button_style) 
 
         # Estilos de la ventana y paleta de colores
