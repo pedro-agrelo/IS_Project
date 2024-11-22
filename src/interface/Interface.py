@@ -106,7 +106,12 @@ class Interface(QMainWindow):
 
     def open_user_guide(self):
         """Muestra la guía de usuario"""
-        QMessageBox.information(self, "User Guide", "Here is a guide on how to use this application!", QMessageBox.Ok)
+        QMessageBox.information(self, "User Guide", "✨ **Welcome to our application.** ✨\n\n"
+            "1 Upload the file from the menu with 'Open File Explorer' or open another previously made model with 'Load Model'.\n"
+            "2 Select and preprocess the columns.\n"
+            "3 Create the model and make a prediction.\n"
+            "4 Add a description and save the model.\n\n"
+            "🎉 Enjoy experimenting with data! 🎉", QMessageBox.Ok)
 
     def toggle_menu_visibility(self):
         """Toggle the visibility of the menu."""
