@@ -7,6 +7,7 @@ from DataTable import DataTableModel, DataTableView, DataTableController
 from ColumnSelector import ColumnSelectorModel, ColumnSelectorView, ColumnSelectorController
 from DataPreprocessor import DataPreprocessorModel, DataPreprocessorView, DataPreprocessorController
 from LinearModel import LinearModelModel, LinearModelView, LinearModelController
+from Menu import Menu
 
 class Interface(QMainWindow):
     def __init__(self):
@@ -23,27 +24,30 @@ class Interface(QMainWindow):
         # Layout principal vertical
         main_layout = QVBoxLayout()
 
+        # Persistent toggle button to show/hide the menu
+        self.menu_toggle_button = QPushButton("≡")
+        self.menu_toggle_button.setFixedSize(60, 30)
+        self.menu_toggle_button.setFont(QFont("Arial", 16, QFont.Bold))
+        self.menu_toggle_button.setStyleSheet("""
+            QPushButton {
+                background-color: transparent;  /* Make the background transparent */
+                color: white;                    /* White text */
+                border: none;                    /* Remove the border */
+                padding: 5px;                    /* Add some padding around the text */
+            }
+            QPushButton:hover {
+                background-color: rgba(255, 255, 255, 0.2);  /* Light hover effect */
+            }
+        """)
+        self.menu_toggle_button.clicked.connect(self.toggle_menu_visibility)
+        main_layout.addWidget(self.menu_toggle_button, alignment=Qt.AlignLeft)
+
         # Etiqueta para mostrar el mensaje inicial
         self.label = QLabel("Select a CSV, Excel or SQLite file")
         self.label.setAlignment(Qt.AlignCenter)
         self.label.setFont(QFont("Arial", 14))
         self.label.setStyleSheet("color: white;")
         main_layout.addWidget(self.label)
-
-        # Botón para abrir el explorador de archivos
-        self.button = QPushButton('Open File Explorer')
-        self.button.setFixedSize(300, 50)
-        self.button.setFont(QFont("Arial", 16, QFont.Bold))  # Aumentar tamaño de letra
-        self.button.clicked.connect(self.open_file_dialog)
-        main_layout.addWidget(self.button, alignment=Qt.AlignCenter)
-        
-        # Botón para cargar modelo
-        self.load_model_button = QPushButton('Load Model (.joblib)')
-        self.load_model_button.setFixedSize(300, 50)
-        self.load_model_button.setFont(QFont("Arial", 16, QFont.Bold))
-        self.load_model_button.clicked.connect(self.load_model)
-        self.load_model_button.setVisible(True)  # Visible al principio
-        main_layout.addWidget(self.load_model_button, alignment=Qt.AlignCenter)
 
         # Tabla para mostrar los datos
         self.table_model = DataTableModel()
@@ -93,6 +97,32 @@ class Interface(QMainWindow):
         container = QWidget()
         container.setLayout(main_layout)
         self.setCentralWidget(container)
+
+        # Configurar el menú lateral
+        self.menu = Menu(self)
+        self.menu.hide()
+        self.addDockWidget(Qt.LeftDockWidgetArea, self.menu)
+
+
+    def open_user_guide(self):
+        """Muestra la guía de usuario"""
+        QMessageBox.information(self, "User Guide", "✨ **Welcome to our application.** ✨\n\n"
+            "1- CREATE A NEW MODEL:\nTo create a new model select the option in the top left menu and select "
+                "the data that you are going to work with.\n\nThen the preprocess screen will appear, here you must "
+                "select the input and outputs columns and apply the preprocess to them.\n\nOnce you finish you can "
+                "create the model by pressing the button on the bottom.\n\nFinally, you will see a  graphic of the model, "
+                "the most important information about it and a prediction area.\n\nYou can also add a description "
+                "to your model and save it by using the buttons Save Description and Save Model.\n\n"
+            "2- LOAD A MODEL:\n Just select the file with the model and it will load the same screen as when it was"
+                " created but you cant modify it.\n\n"
+            "🎉 Enjoy experimenting with data! 🎉", QMessageBox.Ok)
+
+    def toggle_menu_visibility(self):
+        """Toggle the visibility of the menu."""
+        if self.menu.isVisible():
+            self.menu.hide()    
+        else:
+            self.menu.show()
 
     def show_empty_file_message(self):
         """Muestra un mensaje de advertencia si el archivo está vacío"""
@@ -149,8 +179,6 @@ class Interface(QMainWindow):
             QPushButton:hover {
                 background-color: #555555;}
         """
-        self.button.setStyleSheet(button_style)  # Botón de abrir archivos
-        self.load_model_button.setStyleSheet(button_style)  # Botón para cargar el modelo
         self.data_preprocessor_view.empty_cells_button.setStyleSheet(button_style) 
 
         # Estilos de la ventana y paleta de colores
@@ -193,7 +221,16 @@ class Interface(QMainWindow):
                 if item and (item.text() == "" or item.text().lower() == "nan"):
                     item.setBackground(QColor(255, 0, 0, 150))  # Rojo transparente para destacar
 
-    
+    def toggle_menu(self):
+        selected_option = self.menu.menu_list.currentItem().text()
+        # Llamar a la función correspondiente según el texto del elemento
+        if selected_option == "Ir a la guía de usuario":
+            return
+        elif selected_option == "Crear un modelo":
+            self.create_model()
+        elif selected_option == "Cargar un modelo":
+            self.load_model()
+  
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     window = Interface()

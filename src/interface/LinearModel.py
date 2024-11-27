@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QTextEdit, QLabel, QMessageBox, QGroupBox, QPushButton, QFileDialog
+from PyQt5.QtWidgets import QWidget, QVBoxLayout, QTextEdit, QLabel, QMessageBox, QGroupBox, QPushButton, QFileDialog, QLineEdit, QFormLayout
 from PyQt5.QtGui import QFont
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_absolute_error, root_mean_squared_error, r2_score
@@ -59,7 +59,7 @@ class LinearModelModel():
 
         # Mostrar métricas en los datos de prueba
         self.description = ""
-        self.error = str(f"Training MAE: {mae_train:.3f}, RMSE: {rmse_train:.3f}, R²: {r2_train:.3f}\n" + f"Test MAE: {mae_test:.3f}, RMSE: {rmse_test:.3f}, R²: {r2_test:.3f}")
+        self.errors = str(f"Training MAE: {mae_train:.3f}, RMSE: {rmse_train:.3f}, R²: {r2_train:.3f}\n" + f"Test MAE: {mae_test:.3f}, RMSE: {rmse_test:.3f}, R²: {r2_test:.3f}")
         return True
     
     def plot_regression(self):
@@ -142,6 +142,25 @@ class LinearModelView(QWidget):
         self.info_group_box.setLayout(info_layout)
         layout.addWidget(self.info_group_box)
 
+        # Crear la sección para realizar predicciones
+        self.prediction_group_box = QGroupBox("Prediction")
+        self.prediction_group_box.setFont(QFont("Arial", 12, QFont.Bold))
+        self.prediction_group_box.setStyleSheet("QGroupBox { font-weight: bold; color: #99FFFF; }")
+        self.prediction_layout = QFormLayout()
+        self.input_fields = {}
+
+        # Campo para mostrar la predicción
+        self.prediction_label = QLabel("Prediction: Prediction result will appear here.")
+        self.prediction_label.setFont(QFont("Arial", 12, QFont.Bold))
+        self.prediction_label.setStyleSheet("color: white;")  # Texto en blanco
+        self.prediction_layout.addRow(self.prediction_label)
+
+        self.prediction_button = QPushButton("Predict")
+        self.prediction_layout.addRow(self.prediction_button)
+
+        self.prediction_group_box.setLayout(self.prediction_layout)
+        layout.addWidget(self.prediction_group_box)
+
         # Etiqueta para mostrar la información del modelo en un recuadro con letras blancas
         self.saved_description_label = QLabel("Model Description:")
         self.saved_description_label.setFont(QFont("Arial", 12, QFont.Bold))
@@ -172,7 +191,6 @@ class LinearModelView(QWidget):
 
         self.setLayout(layout)
 
-
     def set_formula(self, formula):
         """Muestra la fórmula del modelo en la vista."""
         self.formula_label.setText(f"Linear Regression Formula: {formula}")
@@ -185,6 +203,10 @@ class LinearModelView(QWidget):
         """Muestra la descripción ingresada por el usuario."""
         self.saved_description_label.setText(f"Model Description:\n{description}")
 
+    def set_prediction(self, prediction):
+        """Muestra la descripción ingresada por el usuario."""
+        self.prediction_label.setText(f"Prediction: {prediction}")
+
 class LinearModelController():
     def __init__(self, model, view):
         self.model = model
@@ -193,6 +215,7 @@ class LinearModelController():
         # Conectar botones con acciones
         self.view.save_description_button.clicked.connect(self.save_description)
         self.view.save_model_button.clicked.connect(self.save_model)
+        self.view.prediction_button.clicked.connect(self.make_prediction)
 
     def create_model(self, entry_columns, target_column):
         if self.model.create_model(entry_columns, target_column):
@@ -208,6 +231,8 @@ class LinearModelController():
             self.view.set_formula(self.model.formula)
             self.view.set_errors(self.model.errors)
             self.view.set_description(self.model.description)
+
+            self.allow_inputs_prediction()
 
             self.view.description_text.setVisible(True)
             self.view.save_description_button.setVisible(True)
@@ -246,6 +271,8 @@ class LinearModelController():
                 fig = self.model.plot_regression()
                 self.view.plot_widget.layout().addWidget(FigureCanvas(fig))
 
+                self.allow_inputs_prediction()
+
                 self.view.description_text.setVisible(False)
                 self.view.save_description_button.setVisible(False)
                 self.view.save_model_button.setVisible(False)
@@ -255,6 +282,41 @@ class LinearModelController():
             except Exception as e:
                 self.show_message("Error", f"Failed to load model: {str(e)}", "error")
                 return False
+
+    def make_prediction(self):
+        """Realizar la predicción utilizando los valores ingresados"""
+        # Obtener los valores de las columnas de entrada
+        input_values = []
+        try:
+            for col in self.model.entry_columns:
+                value = float(self.view.input_fields[col].text())  # Convertir a float
+                input_values.append(value)
+            # Realizar la predicción
+            prediction = self.model.model.predict([input_values])[0]  # La predicción es un valor único
+
+            # Mostrar la predicción
+            self.view.set_prediction(prediction)
+            
+        except Exception:
+            self.show_message("Error", f"Introduce the values needed to predict", "error")
+
+    def allow_inputs_prediction(self):
+        # Iterar sobre el layout y eliminar todas las filas, excepto las dos primeras
+        for i in range(self.view.prediction_layout.count() - 1, 1, -1):  # Comienza desde la última fila hasta la tercera fila
+            item = self.view.prediction_layout.itemAt(i)
+            if item.widget():
+                item.widget().deleteLater()  # Eliminar el widget
+
+        # Crear campos de entrada para las columnas de entrada
+        self.view.input_fields = {}
+        if self.model.entry_columns:
+            for col in self.model.entry_columns:
+                input_field = QLineEdit()
+                input_field.setPlaceholderText(f"Enter value for {col}")
+                label = QLabel(f"{col}:")
+                label.setStyleSheet("color: white;")  # Establecer el color blanco para el texto
+                self.view.prediction_layout.addRow(label, input_field)
+                self.view.input_fields[col] = input_field
 
     def show_message(self, title, message, msg_type):
         """Mostrar mensaje en la vista"""
