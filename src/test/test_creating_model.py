@@ -40,8 +40,8 @@ def test_create_model():
     assert len(model.formula) > 0, "La fórmula está vacía."
 
     # Verificar las métricas
-    assert "Training MAE" in model.error, "Las métricas de error no se generaron correctamente."
-    assert "Test MAE" in model.error, "Las métricas de error no incluyen el conjunto de prueba."
+    assert "Training MAE" in model.errors, "Las métricas de error no se generaron correctamente."
+    assert "Test MAE" in model.errors, "Las métricas de error no incluyen el conjunto de prueba."
 
 def test_save_model():
     # Crear datos de ejemplo
