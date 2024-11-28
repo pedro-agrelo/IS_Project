@@ -232,7 +232,7 @@ class Interface(QMainWindow):
         entry_columns, target_column = self.column_selector_controller.get_selected_columns()
         
         # Si no se han seleccionado columnas, mostrar un mensaje
-        if not entry_columns and not target_column:
+        if not entry_columns or not target_column:
             self.data_preprocessor_view.show_message("Warning", "Please select columns first.", "warning")
             return False
 
