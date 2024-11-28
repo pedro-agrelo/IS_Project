@@ -1,7 +1,7 @@
 import os
 import pandas as pd
 from PyQt5.QtWidgets import (QTableWidget, QTableWidgetItem, QHeaderView)
-
+import sqlite3
 import os
 import pandas as pd
 
@@ -19,7 +19,6 @@ class DataTableModel:
             elif file_extension in ['.xlsx', '.xls']:
                 self.df = pd.read_excel(file_name)
             elif file_extension in ['.sqlite', '.db']:
-                import sqlite3
                 conn = sqlite3.connect(file_name)
                 query = "SELECT name FROM sqlite_master WHERE type='table';"
                 tables = pd.read_sql(query, conn)
@@ -65,23 +64,24 @@ class DataTableView(QTableWidget):
         
     def update_table(self, df):
         """Actualiza el contenido de la tabla con el DataFrame."""
+        self.clear()  # Limpiar la tabla para eliminar cualquier contenido previo
+
         self.setRowCount(df.shape[0])
         self.setColumnCount(df.shape[1])
-
+        
         for i in range(df.shape[0]):
             for j in range(df.shape[1]):
                 self.setItem(i, j, QTableWidgetItem(str(df.iat[i, j])))
 
-        # Ajustar el comportamiento de las columnas y filas
-        self.resizeColumnsToContents()
-        self.resizeRowsToContents()
 
         # Ajustar el tamaño de las cabeceras
         self.setHorizontalHeaderLabels(df.columns)
         self.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
-        
-        self.setVisible(True)
 
+        # Ajustar el comportamiento de las columnas y filas
+        self.resizeColumnsToContents()
+        self.resizeRowsToContents()
+        return
 
 class DataTableController:
     def __init__(self, view, model):
@@ -106,5 +106,6 @@ class DataTableController:
         
     def update_table(self, df):
         """Actualiza el contenido de la tabla con el DataFrame."""
-        self.view.update_table(df)
         self.model.df = df
+        self.view.update_table(df)
+        

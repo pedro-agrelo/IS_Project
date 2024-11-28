@@ -1,19 +1,22 @@
 import sys
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QPushButton, QFileDialog, QLabel,
-                             QVBoxLayout, QHBoxLayout, QWidget, QMessageBox)
+                             QVBoxLayout, QHBoxLayout, QWidget, QMessageBox, QProgressBar)
 from PyQt5.QtGui import QFont, QPalette, QColor
 from PyQt5.QtCore import Qt
+
 from DataTable import DataTableModel, DataTableView, DataTableController
 from ColumnSelector import ColumnSelectorModel, ColumnSelectorView, ColumnSelectorController
 from DataPreprocessor import DataPreprocessorModel, DataPreprocessorView, DataPreprocessorController
 from LinearModel import LinearModelModel, LinearModelView, LinearModelController
 from Menu import Menu
+from Thread import FileLoaderThread
+import time
 
 class Interface(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle('Projecta')
-        self.setGeometry(300, 150, 800, 600)  # Tamaño de la ventana
+        self.setGeometry(200, 300, 900, 800)
 
         # Configuración de la interfaz
         self.setup_ui()
@@ -41,6 +44,23 @@ class Interface(QMainWindow):
         """)
         self.menu_toggle_button.clicked.connect(self.toggle_menu_visibility)
         main_layout.addWidget(self.menu_toggle_button, alignment=Qt.AlignLeft)
+
+        #progress bar
+        self.progress_bar = QProgressBar(self)
+        self.progress_bar.setVisible(False)
+        self.progress_bar.setStyleSheet("""
+            QProgressBar {
+                border: 2px solid #FFFFFF;
+                border-radius: 5px;
+                text-align: center;
+                background-color: #333333;
+                color: white;
+            }
+            QProgressBar::chunk {
+                background-color: #00BFFF;
+                width: 10px;
+            }""")
+        main_layout.addWidget(self.progress_bar)
 
         # Etiqueta para mostrar el mensaje inicial
         self.label = QLabel("Select a CSV, Excel or SQLite file")
@@ -138,32 +158,47 @@ class Interface(QMainWindow):
         options = QFileDialog.Options()
         file_filter = "Archivos compatibles (*.csv *.xlsx *.xls *.sqlite *.db)"
         file_name, _ = QFileDialog.getOpenFileName(self, "Select File", "", file_filter, options=options)
-
+        self.table_view.setVisible(False)
+        self.column_selector_view.setVisible(False)
+        self.data_preprocessor_view.setVisible(False)
+        self.create_model_button.setVisible(False)
         if file_name:
             self.label.setText(f"<b>Selected file:</b> <br><i>{file_name}</i>")
-            if self.table_controller.load_file(file_name):
-                headers = [self.table_view.horizontalHeaderItem(i).text() for i in range(self.table_view.columnCount())]
-                self.column_selector_controller.update_selectors(headers)
-                self.linear_model_view.setVisible(False)
-                self.column_selector_view.setVisible(True)
-                self.data_preprocessor_view.setVisible(True) 
-                self.create_model_button.setVisible(True) 
-                self.label.setStyleSheet("color: #FFFFFF;")
-                self.linear_model_model.df = self.table_model.df
-                self.data_preprocessor_model.df = self.table_model.df
-
-            else:
-                self.column_selector_view.setVisible(False)
-                self.data_preprocessor_view.setVisible(False)
-                self.create_model_button.setVisible(False)
-                self.show_empty_file_message()
+            self.label.setStyleSheet("color: #FFFFFF;")
+            # Show the progress bar and make it visible
+            self.progress_bar.setValue(0)
+            self.progress_bar.setVisible(True)
+            # Create a new worker thread for file loading
+            self.loader_thread = FileLoaderThread(file_name, self.table_controller, self.table_model)
+            # Connect signals to update the progress bar and handle file loading completion
+            self.loader_thread.finished_signal.connect(self.on_file_loaded)
+            # Start the worker thread
+            self.loader_thread.start()
+            for i in range(0,101,10):
+                self.progress_bar.setValue(i)
+                time.sleep(0.5)
         else:
-            self.table_view.setVisible(False)
-            self.column_selector_view.setVisible(False)
-            self.data_preprocessor_view.setVisible(False)
-            self.create_model_button.setVisible(False)
-            self.label.setText("<b>No file selected</b>")
-            self.label.setStyleSheet("color: #FF6347;")
+            return
+
+    def on_file_loaded(self, df):
+        """Called when the file is successfully loaded."""
+        if df is None:
+            self.show_empty_file_message()
+            self.progress_bar.hide()
+            return
+        # Hide the progress bar once loading is complete
+        self.progress_bar.hide()
+        self.linear_model_view.hide()
+        self.table_view.show()
+        # Enable related views and components
+        headers = [self.table_view.horizontalHeaderItem(i).text() for i in range(self.table_view.columnCount())]
+        self.column_selector_controller.update_selectors(headers)
+        self.column_selector_view.show()
+        self.data_preprocessor_view.show()
+        self.create_model_button.show()
+        # Update models with the loaded DataFrame
+        self.linear_model_model.df = self.table_model.df
+        self.data_preprocessor_model.df = self.table_model.df
 
     def apply_styles(self):
         """Aplica estilos (QSS) a los widgets"""
@@ -211,7 +246,7 @@ class Interface(QMainWindow):
     def highlight_empty_cells(self):
         entry_columns, target_column = self.column_selector_controller.get_selected_columns()
         if not entry_columns and not target_column:
-            self.view.show_message("Warning", "Please select columns first.", "warning")
+            self.data_preprocessor_view.show_message("Warning", "Please select columns first.", "warning")
             return False
         column_indices, missing_cells = self.data_preprocessor_controller.highlight_empty_cells(entry_columns, target_column)
 
@@ -221,16 +256,6 @@ class Interface(QMainWindow):
                 if item and (item.text() == "" or item.text().lower() == "nan"):
                     item.setBackground(QColor(255, 0, 0, 150))  # Rojo transparente para destacar
 
-    def toggle_menu(self):
-        selected_option = self.menu.menu_list.currentItem().text()
-        # Llamar a la función correspondiente según el texto del elemento
-        if selected_option == "Ir a la guía de usuario":
-            return
-        elif selected_option == "Crear un modelo":
-            self.create_model()
-        elif selected_option == "Cargar un modelo":
-            self.load_model()
-  
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     window = Interface()
