@@ -48,23 +48,6 @@ class Interface(QMainWindow):
         self.menu_toggle_button.clicked.connect(self.toggle_menu_visibility)
         main_layout.addWidget(self.menu_toggle_button, alignment=Qt.AlignLeft)
 
-        #progress bar
-        self.progress_bar = QProgressBar(self)
-        self.progress_bar.setVisible(False)
-        self.progress_bar.setStyleSheet("""
-            QProgressBar {
-                border: 2px solid #FFFFFF;
-                border-radius: 5px;
-                text-align: center;
-                background-color: #333333;
-                color: white;
-            }
-            QProgressBar::chunk {
-                background-color: #00BFFF;
-                width: 10px;
-            }""")
-        main_layout.addWidget(self.progress_bar)
-
         # Etiqueta para mostrar el mensaje inicial
         self.label = QLabel("Select a CSV, Excel or SQLite file")
         self.label.setAlignment(Qt.AlignCenter)
@@ -129,7 +112,13 @@ class Interface(QMainWindow):
 
     def open_user_guide(self):
         """Muestra la guía de usuario"""
-        QMessageBox.information(self, "User Guide", "✨ **Welcome to our application.** ✨\n\n"
+        self.label.show()
+        self.table_view.hide()
+        self.column_selector_view.hide()
+        self.data_preprocessor_view.hide()
+        self.create_model_button.hide()
+        self.linear_model_view.hide()
+        self.label.setText("✨ **Welcome to our application.** ✨\n\n"
             "1- CREATE A NEW MODEL:\nTo create a new model select the option in the top left menu and select "
                 "the data that you are going to work with.\n\nThen the preprocess screen will appear, here you must "
                 "select the input and outputs columns and apply the preprocess to them.\n\nOnce you finish you can "
@@ -138,7 +127,7 @@ class Interface(QMainWindow):
                 "to your model and save it by using the buttons Save Description and Save Model.\n\n"
             "2- LOAD A MODEL:\n Just select the file with the model and it will load the same screen as when it was"
                 " created but you cant modify it.\n\n"
-            "🎉 Enjoy experimenting with data! 🎉", QMessageBox.Ok)
+            "🎉 Enjoy experimenting with data! 🎉")
 
     def toggle_menu_visibility(self):
         """Toggle the visibility of the menu."""
@@ -168,10 +157,7 @@ class Interface(QMainWindow):
         if file_name:
             self.label.setText(f"<b>Selected file:</b> <br><i>{file_name}</i>")
             self.label.setStyleSheet("color: #FFFFFF;")
-            # Show the progress bar and make it visible
-            self.progress_bar.setValue(0)
             # Create a new worker thread for file loading
-            # Connect signals to update the progress bar and handle file loading completion
             if self.table_controller.load_file(file_name):
                 self.on_file_loaded(self.table_model.df)    
             else:
@@ -184,8 +170,7 @@ class Interface(QMainWindow):
 
     def on_file_loaded(self, df):
         """Called when the file is successfully loaded."""
-        # Hide the progress bar once loading is complete
-        self.progress_bar.hide()
+        self.label.show()
         self.linear_model_view.hide()
         self.table_view.show()
         # Enable related views and components
@@ -230,6 +215,7 @@ class Interface(QMainWindow):
 
     def load_model(self):
         if self.linear_model_controller.load_model():
+            self.label.hide()
             self.table_view.setVisible(False)
             self.column_selector_view.setVisible(False)
             self.data_preprocessor_view.setVisible(False)
@@ -242,17 +228,31 @@ class Interface(QMainWindow):
             self.table_controller.update_table(self.data_preprocessor_model.df)
 
     def highlight_empty_cells(self):
+        # Obtener las columnas seleccionadas y la columna de destino
         entry_columns, target_column = self.column_selector_controller.get_selected_columns()
+        
+        # Si no se han seleccionado columnas, mostrar un mensaje
         if not entry_columns and not target_column:
             self.data_preprocessor_view.show_message("Warning", "Please select columns first.", "warning")
             return False
-        column_indices, missing_cells = self.data_preprocessor_controller.highlight_empty_cells(entry_columns, target_column)
 
-        for i in range(self.table_view.rowCount()):
-            for j in column_indices:
-                item = self.table_view.item(i, j)
-                if item and (item.text() == "" or item.text().lower() == "nan"):
-                    item.setBackground(QColor(255, 0, 0, 150))  # Rojo transparente para destacar
+        # Obtener los índices de las columnas y las celdas vacías desde el controlador
+        column_indices, missing_cells = self.data_preprocessor_controller.highlight_empty_cells(entry_columns, target_column)
+        
+        # Empezar la actualización de la vista de la tabla
+        for i in range(self.table_view.model().rowCount()):  # Iterar sobre las filas
+            for j in column_indices:  # Iterar sobre las columnas seleccionadas
+                # Obtener el índice del modelo para la celda específica
+                index = self.table_view.model().index(i, j)
+
+                # Verificar si la celda está vacía o tiene el valor 'nan'
+                if index.isValid():
+                    data = self.table_view.model().data(index, Qt.DisplayRole)
+                    if data == "" or str(data).lower() == "nan":
+                        # Cambiar el color de fondo de la celda a rojo transparente usando Qt.BackgroundRole
+                        pass
+        return True
+
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
