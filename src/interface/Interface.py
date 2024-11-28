@@ -9,8 +9,6 @@ from ColumnSelector import ColumnSelectorModel, ColumnSelectorView, ColumnSelect
 from DataPreprocessor import DataPreprocessorModel, DataPreprocessorView, DataPreprocessorController
 from LinearModel import LinearModelModel, LinearModelView, LinearModelController
 from Menu import Menu
-from Thread import FileLoaderThread
-import time
 
 class Interface(QMainWindow):
     def __init__(self):
@@ -172,14 +170,17 @@ class Interface(QMainWindow):
             self.label.setStyleSheet("color: #FFFFFF;")
             # Show the progress bar and make it visible
             self.progress_bar.setValue(0)
-            self.progress_bar.show()
             # Create a new worker thread for file loading
             # Connect signals to update the progress bar and handle file loading completion
             if self.table_controller.load_file(file_name):
                 self.on_file_loaded(self.table_model.df)    
-        else:
-            self.show_empty_file_message()
-            return
+            else:
+                self.show_empty_file_message()
+                self.table_view.hide()
+                self.column_selector_view.hide()
+                self.data_preprocessor_view.hide()
+                self.create_model_button.hide()
+                return
 
     def on_file_loaded(self, df):
         """Called when the file is successfully loaded."""
