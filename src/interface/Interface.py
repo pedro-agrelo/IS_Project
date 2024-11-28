@@ -225,7 +225,8 @@ class Interface(QMainWindow):
     def apply_preprocess(self):
         entry_columns, target_column = self.column_selector_controller.get_selected_columns()
         if self.data_preprocessor_controller.apply_preprocessing(entry_columns, target_column):
-            self.table_controller.update_table(self.data_preprocessor_model.df)
+            self.table_model.df = self.data_preprocessor_model.df
+            self.table_controller.update_table()
 
     def highlight_empty_cells(self):
         # Obtener las columnas seleccionadas y la columna de destino
