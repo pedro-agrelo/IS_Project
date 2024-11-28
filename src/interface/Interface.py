@@ -250,7 +250,7 @@ class Interface(QMainWindow):
                     data = self.table_view.model().data(index, Qt.DisplayRole)
                     if data == "" or str(data).lower() == "nan":
                         # Cambiar el color de fondo de la celda a rojo transparente usando Qt.BackgroundRole
-                        pass
+                        self.table_view.model().set_background(i, j, QColor(255, 0, 0, 150))  # Rojo transparente
         return True
 
 

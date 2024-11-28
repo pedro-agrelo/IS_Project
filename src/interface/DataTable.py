@@ -9,6 +9,7 @@ class DataTableModel(QAbstractTableModel):
     def __init__(self):
         super().__init__()
         self.df = pd.DataFrame()  # Inicialmente vacío
+        self.backgrounds = {}
 
     def setDataFrame(self, dataframe):
         """
@@ -31,16 +32,16 @@ class DataTableModel(QAbstractTableModel):
         return self.df.shape[1]
 
     def data(self, index, role=Qt.DisplayRole):
-        """
-        Devuelve el dato para una celda dada (fila, columna).
-        """
         if not index.isValid():
             return None
-        
-        if role == Qt.DisplayRole:  # Mostrar datos en la vista
+
+        if role == Qt.DisplayRole:
             value = self.df.iloc[index.row(), index.column()]
             return str(value)
         
+        if role == Qt.BackgroundRole:
+            return self.backgrounds.get((index.row(), index.column()), None)
+
         return None
 
     def headerData(self, section, orientation, role=Qt.DisplayRole):
@@ -95,6 +96,12 @@ class DataTableModel(QAbstractTableModel):
         Devuelve el DataFrame actual.
         """
         return self.df
+    
+    def set_background(self, row, column, color):
+        """Establece el color de fondo para una celda específica."""
+        self.backgrounds[(row, column)] = color
+        # Emitir señal para actualizar la celda visualmente
+        self.dataChanged.emit(self.index(row, column), self.index(row, column))
 
 
 class DataTableView(QTableView):
