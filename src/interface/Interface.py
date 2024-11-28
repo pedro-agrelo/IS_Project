@@ -1,6 +1,6 @@
 import sys
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QPushButton, QFileDialog, QLabel,
-                             QVBoxLayout, QHBoxLayout, QWidget, QMessageBox, QProgressBar)
+                             QVBoxLayout, QHBoxLayout, QWidget, QMessageBox, QProgressBar, QDesktopWidget)
 from PyQt5.QtGui import QFont, QPalette, QColor
 from PyQt5.QtCore import Qt
 
@@ -16,7 +16,12 @@ class Interface(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle('Projecta')
-        self.setGeometry(200, 300, 900, 800)
+        # Obtener la geometría de la pantalla disponible (sin barra de tareas)
+        screen_geometry = QDesktopWidget().availableGeometry()
+        
+        # Establecer la geometría de la ventana para que ocupe toda la pantalla disponible
+        self.setGeometry(screen_geometry)
+        self.showMaximized()
 
         # Configuración de la interfaz
         self.setup_ui()
@@ -158,40 +163,32 @@ class Interface(QMainWindow):
         options = QFileDialog.Options()
         file_filter = "Archivos compatibles (*.csv *.xlsx *.xls *.sqlite *.db)"
         file_name, _ = QFileDialog.getOpenFileName(self, "Select File", "", file_filter, options=options)
-        self.table_view.setVisible(False)
-        self.column_selector_view.setVisible(False)
-        self.data_preprocessor_view.setVisible(False)
-        self.create_model_button.setVisible(False)
+        self.table_view.hide()
+        self.column_selector_view.hide()
+        self.data_preprocessor_view.hide()
+        self.create_model_button.hide()
         if file_name:
             self.label.setText(f"<b>Selected file:</b> <br><i>{file_name}</i>")
             self.label.setStyleSheet("color: #FFFFFF;")
             # Show the progress bar and make it visible
             self.progress_bar.setValue(0)
-            self.progress_bar.setVisible(True)
+            self.progress_bar.show()
             # Create a new worker thread for file loading
-            self.loader_thread = FileLoaderThread(file_name, self.table_controller, self.table_model)
             # Connect signals to update the progress bar and handle file loading completion
-            self.loader_thread.finished_signal.connect(self.on_file_loaded)
-            # Start the worker thread
-            self.loader_thread.start()
-            for i in range(0,101,10):
-                self.progress_bar.setValue(i)
-                time.sleep(0.5)
+            if self.table_controller.load_file(file_name):
+                self.on_file_loaded(self.table_model.df)    
         else:
+            self.show_empty_file_message()
             return
 
     def on_file_loaded(self, df):
         """Called when the file is successfully loaded."""
-        if df is None:
-            self.show_empty_file_message()
-            self.progress_bar.hide()
-            return
         # Hide the progress bar once loading is complete
         self.progress_bar.hide()
         self.linear_model_view.hide()
         self.table_view.show()
         # Enable related views and components
-        headers = [self.table_view.horizontalHeaderItem(i).text() for i in range(self.table_view.columnCount())]
+        headers = [self.table_model.headerData(i, Qt.Horizontal, Qt.DisplayRole) for i in range(self.table_model.columnCount())]
         self.column_selector_controller.update_selectors(headers)
         self.column_selector_view.show()
         self.data_preprocessor_view.show()
