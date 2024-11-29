@@ -1,0 +1,26 @@
+# Pytest for testing
+pytest==7.4.0
+
+# Pandas for data manipulation
+pandas==2.1.1
+
+# Scikit-learn for machine learning
+scikit-learn==1.3.0
+
+# Joblib for model serialization
+joblib==1.3.2
+
+# NumPy for numerical computations
+numpy==1.26.0
+
+# Matplotlib for data visualization
+matplotlib==3.8.0
+
+# PyQt5 for GUI development
+PyQt5==5.15.9
+PyQt5-sip==12.12.2
+PyQt5-Qt5==5.15.2
+
+# SQLite3 is part of Python standard library (no installation required)
+# If additional SQLite tools are needed, uncomment the next line
+# pysqlite3==0.4.6
