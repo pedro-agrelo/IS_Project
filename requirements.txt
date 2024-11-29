@@ -1,6 +1,9 @@
 # Pytest for testing
 pytest==7.4.0
 
+#Openpyxl for archives opening
+openpyxl==3.1.5
+
 # Pandas for data manipulation
 pandas==2.1.1
 
