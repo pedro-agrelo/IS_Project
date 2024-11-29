@@ -1,8 +1,9 @@
 import sys
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QPushButton, QFileDialog, QLabel,
-                             QVBoxLayout, QHBoxLayout, QWidget, QMessageBox)
+                             QVBoxLayout, QHBoxLayout, QWidget, QMessageBox, QProgressBar, QDesktopWidget)
 from PyQt5.QtGui import QFont, QPalette, QColor
 from PyQt5.QtCore import Qt
+
 from DataTable import DataTableModel, DataTableView, DataTableController
 from ColumnSelector import ColumnSelectorModel, ColumnSelectorView, ColumnSelectorController
 from DataPreprocessor import DataPreprocessorModel, DataPreprocessorView, DataPreprocessorController
@@ -13,7 +14,12 @@ class Interface(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle('Projecta')
-        self.setGeometry(300, 150, 800, 600)  # Tamaño de la ventana
+        # Obtener la geometría de la pantalla disponible (sin barra de tareas)
+        screen_geometry = QDesktopWidget().availableGeometry()
+        
+        # Establecer la geometría de la ventana para que ocupe toda la pantalla disponible
+        self.setGeometry(screen_geometry)
+        self.showMaximized()
 
         # Configuración de la interfaz
         self.setup_ui()
@@ -106,7 +112,13 @@ class Interface(QMainWindow):
 
     def open_user_guide(self):
         """Muestra la guía de usuario"""
-        QMessageBox.information(self, "User Guide", "✨ **Welcome to our application.** ✨\n\n"
+        self.label.show()
+        self.table_view.hide()
+        self.column_selector_view.hide()
+        self.data_preprocessor_view.hide()
+        self.create_model_button.hide()
+        self.linear_model_view.hide()
+        self.label.setText("✨ **Welcome to our application.** ✨\n\n"
             "1- CREATE A NEW MODEL:\nTo create a new model select the option in the top left menu and select "
                 "the data that you are going to work with.\n\nThen the preprocess screen will appear, here you must "
                 "select the input and outputs columns and apply the preprocess to them.\n\nOnce you finish you can "
@@ -115,7 +127,7 @@ class Interface(QMainWindow):
                 "to your model and save it by using the buttons Save Description and Save Model.\n\n"
             "2- LOAD A MODEL:\n Just select the file with the model and it will load the same screen as when it was"
                 " created but you cant modify it.\n\n"
-            "🎉 Enjoy experimenting with data! 🎉", QMessageBox.Ok)
+            "🎉 Enjoy experimenting with data! 🎉")
 
     def toggle_menu_visibility(self):
         """Toggle the visibility of the menu."""
@@ -138,32 +150,38 @@ class Interface(QMainWindow):
         options = QFileDialog.Options()
         file_filter = "Archivos compatibles (*.csv *.xlsx *.xls *.sqlite *.db)"
         file_name, _ = QFileDialog.getOpenFileName(self, "Select File", "", file_filter, options=options)
-
+        self.table_view.hide()
+        self.column_selector_view.hide()
+        self.data_preprocessor_view.hide()
+        self.create_model_button.hide()
         if file_name:
             self.label.setText(f"<b>Selected file:</b> <br><i>{file_name}</i>")
+            self.label.setStyleSheet("color: #FFFFFF;")
+            # Create a new worker thread for file loading
             if self.table_controller.load_file(file_name):
-                headers = [self.table_view.horizontalHeaderItem(i).text() for i in range(self.table_view.columnCount())]
-                self.column_selector_controller.update_selectors(headers)
-                self.linear_model_view.setVisible(False)
-                self.column_selector_view.setVisible(True)
-                self.data_preprocessor_view.setVisible(True) 
-                self.create_model_button.setVisible(True) 
-                self.label.setStyleSheet("color: #FFFFFF;")
-                self.linear_model_model.df = self.table_model.df
-                self.data_preprocessor_model.df = self.table_model.df
-
+                self.on_file_loaded(self.table_model.df)    
             else:
-                self.column_selector_view.setVisible(False)
-                self.data_preprocessor_view.setVisible(False)
-                self.create_model_button.setVisible(False)
                 self.show_empty_file_message()
-        else:
-            self.table_view.setVisible(False)
-            self.column_selector_view.setVisible(False)
-            self.data_preprocessor_view.setVisible(False)
-            self.create_model_button.setVisible(False)
-            self.label.setText("<b>No file selected</b>")
-            self.label.setStyleSheet("color: #FF6347;")
+                self.table_view.hide()
+                self.column_selector_view.hide()
+                self.data_preprocessor_view.hide()
+                self.create_model_button.hide()
+                return
+
+    def on_file_loaded(self, df):
+        """Called when the file is successfully loaded."""
+        self.label.show()
+        self.linear_model_view.hide()
+        self.table_view.show()
+        # Enable related views and components
+        headers = [self.table_model.headerData(i, Qt.Horizontal, Qt.DisplayRole) for i in range(self.table_model.columnCount())]
+        self.column_selector_controller.update_selectors(headers)
+        self.column_selector_view.show()
+        self.data_preprocessor_view.show()
+        self.create_model_button.show()
+        # Update models with the loaded DataFrame
+        self.linear_model_model.df = self.table_model.df
+        self.data_preprocessor_model.df = self.table_model.df
 
     def apply_styles(self):
         """Aplica estilos (QSS) a los widgets"""
@@ -197,6 +215,7 @@ class Interface(QMainWindow):
 
     def load_model(self):
         if self.linear_model_controller.load_model():
+            self.label.hide()
             self.table_view.setVisible(False)
             self.column_selector_view.setVisible(False)
             self.data_preprocessor_view.setVisible(False)
@@ -206,31 +225,36 @@ class Interface(QMainWindow):
     def apply_preprocess(self):
         entry_columns, target_column = self.column_selector_controller.get_selected_columns()
         if self.data_preprocessor_controller.apply_preprocessing(entry_columns, target_column):
-            self.table_controller.update_table(self.data_preprocessor_model.df)
+            self.table_model.df = self.data_preprocessor_model.df
+            self.table_controller.update_table()
 
     def highlight_empty_cells(self):
+        # Obtener las columnas seleccionadas y la columna de destino
         entry_columns, target_column = self.column_selector_controller.get_selected_columns()
-        if not entry_columns and not target_column:
-            self.view.show_message("Warning", "Please select columns first.", "warning")
+        
+        # Si no se han seleccionado columnas, mostrar un mensaje
+        if not entry_columns or not target_column:
+            self.data_preprocessor_view.show_message("Warning", "Please select columns first.", "warning")
             return False
+
+        # Obtener los índices de las columnas y las celdas vacías desde el controlador
         column_indices, missing_cells = self.data_preprocessor_controller.highlight_empty_cells(entry_columns, target_column)
+        
+        # Empezar la actualización de la vista de la tabla
+        for i in range(self.table_view.model().rowCount()):  # Iterar sobre las filas
+            for j in column_indices:  # Iterar sobre las columnas seleccionadas
+                # Obtener el índice del modelo para la celda específica
+                index = self.table_view.model().index(i, j)
 
-        for i in range(self.table_view.rowCount()):
-            for j in column_indices:
-                item = self.table_view.item(i, j)
-                if item and (item.text() == "" or item.text().lower() == "nan"):
-                    item.setBackground(QColor(255, 0, 0, 150))  # Rojo transparente para destacar
+                # Verificar si la celda está vacía o tiene el valor 'nan'
+                if index.isValid():
+                    data = self.table_view.model().data(index, Qt.DisplayRole)
+                    if data == "" or str(data).lower() == "nan":
+                        # Cambiar el color de fondo de la celda a rojo transparente usando Qt.BackgroundRole
+                        self.table_view.model().set_background(i, j, QColor(255, 0, 0, 150))  # Rojo transparente
+        return True
 
-    def toggle_menu(self):
-        selected_option = self.menu.menu_list.currentItem().text()
-        # Llamar a la función correspondiente según el texto del elemento
-        if selected_option == "Ir a la guía de usuario":
-            return
-        elif selected_option == "Crear un modelo":
-            self.create_model()
-        elif selected_option == "Cargar un modelo":
-            self.load_model()
-  
+
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     window = Interface()

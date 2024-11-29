@@ -1,54 +1,115 @@
 import os
 import pandas as pd
-from PyQt5.QtWidgets import (QTableWidget, QTableWidgetItem, QHeaderView)
+import sqlite3
+from PyQt5.QtWidgets import QHeaderView, QTableView, QSizePolicy, QAbstractScrollArea
+from PyQt5.QtCore import Qt, QAbstractTableModel
 
-import os
-import pandas as pd
 
-class DataTableModel:
+class DataTableModel(QAbstractTableModel):
     def __init__(self):
+        super().__init__()
         self.df = pd.DataFrame()  # Inicialmente vacío
+        self.backgrounds = {}
+
+    def setDataFrame(self, dataframe):
+        """
+        Método para establecer un nuevo DataFrame en el modelo.
+        """
+        self.beginResetModel()  # Notificar el inicio del cambio de datos
+        self.df = dataframe
+        self.endResetModel()  # Notificar el fin del cambio de datos
+
+    def rowCount(self, parent=None):
+        """
+        Devuelve el número de filas en el DataFrame.
+        """
+        return self.df.shape[0]
+
+    def columnCount(self, parent=None):
+        """
+        Devuelve el número de columnas en el DataFrame.
+        """
+        return self.df.shape[1]
+
+    def data(self, index, role=Qt.DisplayRole):
+        if not index.isValid():
+            return None
+
+        if role == Qt.DisplayRole:
+            value = self.df.iloc[index.row(), index.column()]
+            return str(value)
+        
+        if role == Qt.BackgroundRole:
+            return self.backgrounds.get((index.row(), index.column()), None)
+
+        return None
+
+    def headerData(self, section, orientation, role=Qt.DisplayRole):
+        """
+        Devuelve los encabezados de las columnas o los índices de las filas.
+        """
+        if role == Qt.DisplayRole:
+            if orientation == Qt.Horizontal:
+                # Encabezados de columna
+                return self.df.columns[section]
+            elif orientation == Qt.Vertical:
+                # Encabezados de fila
+                return section + 1 
+
+        return None
 
     def load_file(self, file_name):
-        """Carga el archivo seleccionado en el modelo (DataFrame)."""
+        """
+        Carga el archivo seleccionado en el modelo como DataFrame.
+        """
         try:
             file_extension = os.path.splitext(file_name)[1].lower()
 
             if file_extension == '.csv':
-                self.df = pd.read_csv(file_name)
+                df = pd.read_csv(file_name)
             elif file_extension in ['.xlsx', '.xls']:
-                self.df = pd.read_excel(file_name)
+                df = pd.read_excel(file_name)
             elif file_extension in ['.sqlite', '.db']:
-                import sqlite3
                 conn = sqlite3.connect(file_name)
                 query = "SELECT name FROM sqlite_master WHERE type='table';"
                 tables = pd.read_sql(query, conn)
                 if tables.empty:
-                    return False  # No continuar si está vacío
+                    raise ValueError("El archivo SQLite no contiene tablas.")
                 first_table = tables['name'][0]
-                self.df = pd.read_sql(f"SELECT * FROM {first_table};", conn)
+                df = pd.read_sql(f"SELECT * FROM {first_table};", conn)
                 conn.close()
+            else:
+                raise ValueError(f"Extensión de archivo no soportada: {file_extension}")
 
-            if self.df.empty:
-                return False  # No continuar si está vacío
+            if df.empty:
+                raise ValueError("El archivo no contiene datos.")
 
+            self.setDataFrame(df)
             return True
-        
+
         except Exception as e:
             print(f"Error al cargar el archivo: {e}")
             return False
-    
+
     def get_data(self):
-        """Devuelve el DataFrame actual."""
+        """
+        Devuelve el DataFrame actual.
+        """
         return self.df
+    
+    def set_background(self, row, column, color):
+        """Establece el color de fondo para una celda específica."""
+        self.backgrounds[(row, column)] = color
+        # Emitir señal para actualizar la celda visualmente
+        self.dataChanged.emit(self.index(row, column), self.index(row, column))
 
 
-class DataTableView(QTableWidget):
+class DataTableView(QTableView):
     def __init__(self):
         super().__init__()
         self.setVisible(False)  # Inicialmente oculto
         self.setStyleSheet("""
-        QTableWidget { 
+        QTableView { 
             background-color: #2E2E2E;  /* Fondo gris oscuro para las celdas */
             color: white;  /* Texto en blanco */
         }
@@ -61,26 +122,17 @@ class DataTableView(QTableWidget):
         }
         QTableCornerButton::section {
             background-color: #4A4A4A;  /* Fondo gris claro para la esquina superior izquierda */
-            border: 1px solid #666666;  /* Mismo borde que las cabeceras */}""")
+            border: 1px solid #666666;  /* Mismo borde que las cabeceras */
+        }""")
         
-    def update_table(self, df):
-        """Actualiza el contenido de la tabla con el DataFrame."""
-        self.setRowCount(df.shape[0])
-        self.setColumnCount(df.shape[1])
-
-        for i in range(df.shape[0]):
-            for j in range(df.shape[1]):
-                self.setItem(i, j, QTableWidgetItem(str(df.iat[i, j])))
-
-        # Ajustar el comportamiento de las columnas y filas
-        self.resizeColumnsToContents()
-        self.resizeRowsToContents()
-
-        # Ajustar el tamaño de las cabeceras
-        self.setHorizontalHeaderLabels(df.columns)
+    def update_table(self, model):
+        """
+        Actualiza el contenido de la tabla con el modelo.
+        """
+        self.setModel(model)
+        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.setSizeAdjustPolicy(QAbstractScrollArea.AdjustToContents)
         self.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
-        
-        self.setVisible(True)
 
 
 class DataTableController:
@@ -88,23 +140,19 @@ class DataTableController:
         self.view = view
         self.model = model
 
-        # Conectar las señales y slots (en caso de que haya acciones del usuario)
-        # Si usas señales y slots, puedes conectar aquí las acciones del usuario con los métodos del controlador
-
     def load_file(self, file_name):
-        """Carga los datos desde el archivo usando el modelo y actualiza la vista."""
+        """
+        Carga los datos desde el archivo usando el modelo y actualiza la vista.
+        """
         if self.model.load_file(file_name):
-            # Obtener el DataFrame actualizado
-            df = self.model.get_data()
-
-            # Actualizar la vista con los nuevos datos
-            self.view.update_table(df)
+            self.view.update_table(self.model)
             return True
         else:
             self.view.setVisible(False)
             return False
-        
-    def update_table(self, df):
-        """Actualiza el contenido de la tabla con el DataFrame."""
-        self.view.update_table(df)
-        self.model.df = df
+
+    def update_table(self):
+        """
+        Actualiza el contenido de la tabla con el modelo actual.
+        """
+        self.view.update_table(self.model)
