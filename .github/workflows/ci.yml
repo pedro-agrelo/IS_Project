@@ -32,15 +32,3 @@ jobs:
     # 4. Run tests
     - name: Run tests
       run: pytest
-
-  deploy:
-    needs: build
-    runs-on: windows-latest
-
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
-
-    - name: Deploy
-      run: |
-        echo "Deployment step (customize as needed)"

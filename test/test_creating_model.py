@@ -3,7 +3,7 @@ import pandas as pd
 from sklearn.linear_model import LinearRegression
 import sys
 import os
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "D:/CopiaPedro/CLASE/2º/SOFTWARE/Proyecto/IS_Project/src/interface")))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../src/interface")))
 from LinearModel import LinearModelModel
 import joblib
 from tempfile import NamedTemporaryFile
