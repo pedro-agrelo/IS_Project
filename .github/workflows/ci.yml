@@ -1,12 +1,12 @@
-name: CI/CD Pipeline for Windows with Python 3.12.7
+name: Pruebas automatizadas Github Actions
 
 on:
   push:
     branches:
-      - main
+      - prueba_tes_automatizados
   pull_request:
     branches:
-      - main
+      - prueba_tes_automatizados
 
 jobs:
   build:
