@@ -3,10 +3,10 @@ name: Pruebas automatizadas Github Actions
 on:
   push:
     branches:
-      - prueba_tes_automatizados
+      - main
   pull_request:
     branches:
-      - prueba_tes_automatizados
+      - main
 
 jobs:
   build:
