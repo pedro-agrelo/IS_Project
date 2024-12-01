@@ -6,7 +6,7 @@ import os
 import joblib
 from tempfile import NamedTemporaryFile
 # Agregar la carpeta 'modulo' al path
-sys.path.append(os.path.abspath("C:/Users/corre/Desktop/Inteligencia_Artificial/Ingenieria_del_software/IS_Project/src/interface"))
+sys.path.append(os.path.abspath("../src/interface"))
 from DataTable import DataTableModel
 
 def test_load_data():
@@ -21,5 +21,5 @@ def test_load_data():
 
     #crear el gestor de datos de la tabla
     model = DataTableModel()
-    model.load_file("C:/Users/corre/Desktop/ejemplo.xlsx")
+    model.load_file("test/TestData.xlsx")
     assert model.df.equals(df)
