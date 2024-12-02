@@ -106,7 +106,6 @@ class Interface(QMainWindow):
 
         # Configurar el menú lateral
         self.menu = Menu(self)
-        self.menu.hide()
         self.addDockWidget(Qt.LeftDockWidgetArea, self.menu)
 
 
