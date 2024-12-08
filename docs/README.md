@@ -71,6 +71,7 @@ You can use the side menu to:
 
 You can access it by clicking the three-line button. See **Figure 1**.
 
+![sidemenu](https://github.com/user-attachments/assets/2b254745-4f1b-4fef-9c89-71c9e6a05afa)
 **Figure 1**. Side menu.
 
 ## Importing a File Section
@@ -78,11 +79,18 @@ You can import a database file to create a new model or load a saved model. You 
 - The side menu. See **Figure 2**.
 - The built-in section in the main interface. See **Figure 3**.
 
-**Figure 2**. Importing a File initial interface.  
+![figure2](https://github.com/user-attachments/assets/e31376a6-8e9d-48dd-afeb-e28ff0b8acd8)
+
+**Figure 2**. Importing a File initial interface. 
+
+![figure3](https://github.com/user-attachments/assets/2c22804c-8bb0-46ad-a496-af5c439fe2cd)
+ 
 **Figure 3**. Importing a File main interface.
 
 ## Spreadsheet Section
 This section contains all the granular data from the imported file. The interface shows the specific values in columns and rows. The software only predicts numerical values. See **Figure 4**.
+
+![figure4](https://github.com/user-attachments/assets/ec540ed9-4d66-4c6d-8894-ab589bee4ab6)
 
 **Figure 4**. Spreadsheet section.
 
@@ -92,6 +100,9 @@ This section includes:
 - Target column — the dependent variable selection (target) section—you can select the column for the output value. The software will create a model with the prediction data in the target column.
 
 See **Figure 5**.
+
+![figure5](https://github.com/user-attachments/assets/78e17586-c425-4e6b-88c1-6125de912e1b)
+
 
 **Figure 5**. Variables selection section.
 
@@ -108,14 +119,23 @@ The handle Missing Data section has a dropdown list that contains options to han
 **Table 2**: Options in the Handle Missing Data dropdown list.  
 See **Figure 6**.
 
+![figure6](https://github.com/user-attachments/assets/87a53bd1-f33a-406c-b6f8-e635d086460e)
+
 **Figure 6**. Missing data section.
 
+![figure7](https://github.com/user-attachments/assets/df3d17ca-70c8-48e3-854b-d1bf4395e35b)
+
+**Figure 7**. : Handle Missing Data options in the dropdown list.
+
 ## Model graph section
-This section shows the graph with a regression line in a two-axis coordinate plane; see **Figure 7**:
+This section shows the graph with a regression line in a two-axis coordinate plane; see 
+
+![figure8](https://github.com/user-attachments/assets/38fb816e-abc9-4d1b-90b5-d31d4994a831)
+
 - The Y-axis represents the target column.
 - The X-axis represents the entry column.
 
-**Figure 7**: Model graph section.
+**Figure 8**: Model graph section.
 
 ## Model information section
 This section shows the statistical data about the model:
@@ -134,19 +154,25 @@ This section shows the statistical data about the model:
 - The Test Mean Absolute Error (Test MAE) estimates different test datasets that the model does not recognize as usual during the training.
 - The R² is a coefficient to predict future outcomes. The coefficient determines the quality of the model in replicating the results and the proportion of variation in the outcomes that the model can explain.
 
-See **Figure 8**.
+See **Figure 9**.
 
-**Figure 8**: Model information section.
+![figure9](https://github.com/user-attachments/assets/a19d93e1-362d-4944-ba1c-3c7b48e46685)
+
+**Figure 9**: Model information section.
 
 ## Model Description section
-You can add a description related to the model. See **Figure 9**.  
+You can add a description related to the model. See **Figure 10**.  
 
-**Figure 9**: Model Description section.
+![figure10](https://github.com/user-attachments/assets/c2112f66-2081-4649-ba71-42b873395c33)
+
+**Figure 10**: Model Description section.
 
 ## Prediction section
-In this section, you can enter a value for the independent variable and get a predicted value—dependent variable. See **Figure 10**.
+In this section, you can enter a value for the independent variable and get a predicted value—dependent variable. See **Figure 11**.
 
-**Figure 10**. Prediction section.
+![figure11](https://github.com/user-attachments/assets/5a16e8ab-3865-4acd-a99b-8cd2bfce5983)
+
+**Figure 11**. Prediction section.
 
 ## Downloading Projecta
 You can download Projecta from our GitHub repository.  
@@ -154,8 +180,10 @@ To download Projecta:
 1. Select Code to view the download options.  
    The Local dropdown menu opens.
 
-   **Figure 11**: The Local dropdown menu from the GitHub repository.
-2. Select Download ZIP to download the software.
+![figure12](https://github.com/user-attachments/assets/828ef898-cce0-4884-bd68-042a987ed75a)
+
+   **Figure 12**: The Local dropdown menu from the GitHub repository.
+3. Select Download ZIP to download the software.
 
 ## Installing Projecta
 You must extract the ZIP file to install the software.  
@@ -186,6 +214,7 @@ To import a file from the side menu:
 1. Select New Model in the side menu. See **Figure 2**.  
    The Select File dialog window opens.
 
+
    **Figure 12**: Select File dialog window.
 2. Navigate to the folder you need to import the file from.
 3. Select the file you need to import.
@@ -195,10 +224,11 @@ To import a file from the side menu:
 
 #### To Import a File from the Main Interface
 1. Select **New Model** in the side menu. See **Figure 3**.  
-   The **Select File** dialog window opens. See **Figure 12**.  
-2. Navigate to the folder you need to import a file from.  
-3. Select the file you need to import.  
-4. Click **Open** to import the file.
+   The **Select File** dialog window opens. See **Figure 13**.
+   ![figure13](https://github.com/user-attachments/assets/00189b2d-2c5b-4896-ae83-a286626f9f2e)  
+3. Navigate to the folder you need to import a file from.  
+4. Select the file you need to import.  
+5. Click **Open** to import the file.
 
 ## Preprocessing Data
 After importing a database file, you can select the variables to create the model.
@@ -209,14 +239,19 @@ Projecta needs one or more variables (column headers of the spreadsheet) as inpu
 #### To Select the Entry Variables:
 1. Select **Single Selection** or **Multiple Selection** in the **Entry Columns** section.  
 2. Scroll to the list of variables.  
-3. Select the variable(s). See **Figure 13**.  
+3. Select the variable(s). See **Figure 14**.
+
+![figure14](https://github.com/user-attachments/assets/99b50a6d-6010-4429-8c6e-2262d1530a11)
+     
    **Note:** A **Single Selection** is only for one variable. A **Multiple Selection** is for two or more variables. For multiple selections, you can select the multiple entry columns you need.
 
 #### To Select a Target:
 1. Scroll to the list in the **Target Column** section.  
-2. Select the target. See **Figure 14**  
+2. Select the target. See **Figure 15**
+   ![figure15](https://github.com/user-attachments/assets/8d6bfb49-5935-4f22-9d8e-88e465ec017b) 
 3. Select **Confirm columns selection**.  
-   A **Success dialog** window opens. See **Figure 15**.  
+   A **Success dialog** window opens. See **Figure 16**.
+   ![figure16](https://github.com/user-attachments/assets/b6ca335c-477b-465b-9342-d30c4bf4ee23)
 4. Select **OK** to close the Success dialog window.  
    The software selects your entry and target columns.  
    **Note:** To change the variables, you must import a file again.
@@ -233,16 +268,25 @@ You should highlight the empty cells in your spreadsheet before you decide which
 ### To Display the Empty Cells
 **Note:** You must select the Entry and Target columns to see the empty cells. See **Selecting the Variables**.  
 1. Select **Show Empty Cells** in the **Handle Missing Data** section.  
-   The empty cells appear in red in the spreadsheet section. See **Figure 16**.  
+   The empty cells appear in red in the spreadsheet section. See **Figure 17**.  
 2. Scroll through the spreadsheet section to see all empty cells.
 
+   ![figure17](https://github.com/user-attachments/assets/2b6c2270-5be6-46f6-80b9-4a01c45bfef2)
+
 ### To Select a Strategy for Missing Data
-1. Select the dropdown list in the **Handle Missing Data** section. See **Figure 17**.  
+1. Select the dropdown list in the **Handle Missing Data** section. See **Figure 18**.
+
+![figure18](https://github.com/user-attachments/assets/a00af08f-295b-46da-a067-396fe6605c5f)
+   
 2. Select the action you want to apply to the empty cells. See **Table 2**.  
    The software applies the strategy for both entry and target variables.  
-   **Note:** Enter a value in the constant value box if you select **Fill with Constant Value**. See Figure 18.  
+   **Note:** Enter a value in the constant value box if you select **Fill with Constant Value**. See **Figure 19**.
+![figure19](https://github.com/user-attachments/assets/86b7e677-5585-4783-9a0a-279022a3df63)
 3. Select **Apply**.  
-   The **Success dialog** window opens. See **Figure 19**.  
+   The **Success dialog** window opens. See **Figure 20**.
+
+![figure20](https://github.com/user-attachments/assets/bec059de-a3b1-43eb-b2ae-3f6e3a6f4193)
+   
 4. Select **OK** to confirm the strategy and close the dialogue window.  
    The software applies the strategy and closes the dialogue window.
 
@@ -265,13 +309,18 @@ You can add descriptions for each linear model to help you navigate and find the
 
 ### To Save the Linear Regression Model:
 1. Select **Save Model**.  
-   The **Save Model** dialog window opens. See **Figure 20**.  
+   The **Save Model** dialog window opens. See **Figure 21**.
+
+![figure21](https://github.com/user-attachments/assets/55867132-a747-4963-afaf-b573e7f55afe)
+   
 2. Navigate to the folder you want to save the model.  
 3. Enter the model’s name in the file name box.  
 4. Select **Save** to save the model.  
    **Note:** You can use Notepad to open the saved model.  
-   The **Success dialog** window opens. See **Figure 21**.  
-5. Select **OK** to close the Success dialog window. See **Figure 21**.
+   The **Success dialog** window opens. See **Figure 22**.  
+5. Select **OK** to close the Success dialog window. See **Figure 22**.
+
+   ![figure22](https://github.com/user-attachments/assets/cf54a678-c437-483e-87c4-b3adca6ff2d8)
 
 ## Predicting Data
 After creating a model, you can get a target value with your specific entry value. See **Creating a Linear Regression Model**.
@@ -279,7 +328,9 @@ After creating a model, you can get a target value with your specific entry valu
 ### To Predict Data:
 1. Enter a value in the **Entry Column** box. See **Figure 10**.  
 2. Select **Predict**.  
-   The new value appears in the **Prediction** field. See **Figure 22**.
+   The new value appears in the **Prediction** field. See **Figure 23**.
+
+   ![figure23](https://github.com/user-attachments/assets/52fefd97-9faf-49fa-b116-e76e5af5be9b)
 
 ## Getting Help
 You can select the **User Guide** from the side menu to get help. The **User Guide** provides step-by-step instructions to:
@@ -288,8 +339,10 @@ You can select the **User Guide** from the side menu to get help. The **User Gui
 
 ### To Read the User Guide:
 1. Select the side menu.  
-2. Select the **User Guide**. See **Figure 23**.  
+2. Select the **User Guide**. See **Figure 24**.  
    The software shows the User Guide.
+
+   ![figure24](https://github.com/user-attachments/assets/3cc5899a-6076-475d-83b7-6a08af70c825)
 
 ## License Information
 Copyright© 2024 Projecta.  
