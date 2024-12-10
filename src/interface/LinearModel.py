@@ -7,6 +7,7 @@ import joblib
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+import pandas as pd
 
 class LinearModelModel():
     def __init__(self, df):
@@ -28,6 +29,16 @@ class LinearModelModel():
         if self.df[self.entry_columns].isnull().any().any() or self.df[self.target_column].isnull().any():
             return False
 
+        # Verificar que todas las columnas de entrada sean numéricas
+        for column in self.entry_columns:
+            if not pd.api.types.is_numeric_dtype(self.df[column]):
+                print(f"Error: La columna de entrada '{column}' no es numérica.")
+                return False
+        
+        # Verificar que la columna objetivo sea numérica
+        if not pd.api.types.is_numeric_dtype(self.df[self.target_column]):
+            print(f"Error: La columna objetivo '{self.target_column}' no es numérica.")
+            return False
         X = self.df[self.entry_columns].values
         y = self.df[self.target_column].values
 
@@ -238,6 +249,9 @@ class LinearModelController():
             self.view.save_description_button.setVisible(True)
             self.view.save_model_button.setVisible(True)
             return True
+        else:
+            self.show_message("Error", f"No columns given or columns with no numeric or empty values", "error")
+
 
     def save_description(self):
         """Guardar la descripción proporcionada por el usuario"""
