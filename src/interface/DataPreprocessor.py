@@ -32,7 +32,7 @@ class DataPreprocessorModel:
             try:
                 constant_value = float(constant_value)
             except ValueError:
-                pass
+                return False
             self.df[columns] = self.df[columns].fillna(constant_value)
 
     def get_missing_cells(self, columns):
@@ -141,9 +141,12 @@ class DataPreprocessorController:
 
         # Procesar columnas seleccionadas
         columns_to_process = entry_columns + ([target_column] if target_column not in entry_columns else [])
-        self.model.preprocess_missing_data(columns_to_process, strategy, constant_value)
-        self.view.show_message("Success", "Changes applied.", "info")
-        return True
+        if self.model.preprocess_missing_data(columns_to_process, strategy, constant_value):
+            self.view.show_message("Success", "Changes applied.", "info")
+            return True
+        else:
+            self.view.show_message("Warning", "No numeric value", "warning")
+            return False
 
         
     def highlight_empty_cells(self, entry_columns, target_column):

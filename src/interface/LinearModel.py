@@ -32,12 +32,10 @@ class LinearModelModel():
         # Verificar que todas las columnas de entrada sean numéricas
         for column in self.entry_columns:
             if not pd.api.types.is_numeric_dtype(self.df[column]):
-                print(f"Error: La columna de entrada '{column}' no es numérica.")
                 return False
         
         # Verificar que la columna objetivo sea numérica
         if not pd.api.types.is_numeric_dtype(self.df[self.target_column]):
-            print(f"Error: La columna objetivo '{self.target_column}' no es numérica.")
             return False
         X = self.df[self.entry_columns].values
         y = self.df[self.target_column].values
