@@ -285,6 +285,8 @@ class LinearModelController():
 
                 self.allow_inputs_prediction()
 
+                self.view.set_prediction("Prediction: Prediction result will appear here.")
+
                 self.view.description_text.setVisible(False)
                 self.view.save_description_button.setVisible(False)
                 self.view.save_model_button.setVisible(False)
