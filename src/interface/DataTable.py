@@ -74,7 +74,7 @@ class DataTableModel(QAbstractTableModel):
                 query = "SELECT name FROM sqlite_master WHERE type='table';"
                 tables = pd.read_sql(query, conn)
                 if tables.empty:
-                    raise ValueError("El archivo SQLite no contiene tablas.")
+                    raise ValueError("The SQLite file doesn't contain any tables.")
                 first_table = tables['name'][0]
                 df = pd.read_sql(f"SELECT * FROM {first_table};", conn)
                 conn.close()
@@ -82,14 +82,23 @@ class DataTableModel(QAbstractTableModel):
                 raise ValueError(f"Extensión de archivo no soportada: {file_extension}")
 
             if df.empty:
-                raise ValueError("El archivo no contiene datos.")
+                raise ValueError("No data found.")
 
             self.setDataFrame(df)
             return True
 
-        except Exception as e:
-            print(f"Error al cargar el archivo: {e}")
+        except pd.errors.EmptyDataError:
+            print(f"Empty File: File contains no data.")
             return False
+
+        except ValueError as ve:
+            if "excel file format cannot be determined" in str(ve).lower():
+                raise RuntimeError("Corrupt or unreadable file: Unable to determine file format.")
+
+            raise ValueError(str(ve))
+        
+        except Exception as e:
+            raise Exception(f"Unexpected error: {str(e)}") 
 
     def get_data(self):
         """

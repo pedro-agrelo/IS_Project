@@ -135,12 +135,16 @@ class Interface(QMainWindow):
         else:
             self.menu.show()
 
-    def show_empty_file_message(self):
+    def show_problem_file_message(self,title,message,msg_type):
         """Muestra un mensaje de advertencia si el archivo está vacío"""
         msg = QMessageBox()
-        msg.setIcon(QMessageBox.Warning)
-        msg.setWindowTitle("Empty file")
-        msg.setText("El archivo seleccionado está vacío.")
+        if msg_type == "warning":
+            msg.setIcon(QMessageBox.Warning)
+        if msg_type == "critical":
+            msg.setIcon(QMessageBox.Critical)
+        msg.setWindowTitle(title)
+        msg.setText(message)
+        #msg.setText("El archivo seleccionado está vacío.")
         msg.setStandardButtons(QMessageBox.Ok)
         msg.exec_()
 
@@ -153,19 +157,23 @@ class Interface(QMainWindow):
         self.column_selector_view.hide()
         self.data_preprocessor_view.hide()
         self.create_model_button.hide()
-        if file_name:
+        if file_name: 
             self.label.setText(f"<b>Selected file:</b> <br><i>{file_name}</i>")
             self.label.setStyleSheet("color: #FFFFFF;")
             # Create a new worker thread for file loading
-            if self.table_controller.load_file(file_name):
-                self.on_file_loaded(self.table_model.df)    
-            else:
-                self.show_empty_file_message()
-                self.table_view.hide()
-                self.column_selector_view.hide()
-                self.data_preprocessor_view.hide()
-                self.create_model_button.hide()
-                return
+            try:
+                if self.table_controller.load_file(file_name):
+                    self.on_file_loaded(self.table_model.df)    
+                else:
+                    self.table_view.hide()
+                    self.column_selector_view.hide()
+                    self.data_preprocessor_view.hide()
+                    self.create_model_button.hide()
+                    return
+            except ValueError as ve:
+                self.show_problem_file_message("Error", str(ve), "warning")
+            except Exception as e:
+                self.show_problem_file_message("Critical Error", str(e), "critical")
 
     def on_file_loaded(self, df):
         """Called when the file is successfully loaded."""
