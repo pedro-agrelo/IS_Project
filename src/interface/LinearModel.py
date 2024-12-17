@@ -279,9 +279,10 @@ class LinearModelController():
 
                 for i in reversed(range(self.view.plot_widget.layout().count())):
                     widget_to_remove = self.view.plot_widget.layout().itemAt(i).widget()
-                    widget_to_remove.setParent(None) 
-                fig = self.model.plot_regression()
-                self.view.plot_widget.layout().addWidget(FigureCanvas(fig))
+                    widget_to_remove.setParent(None)
+                if len(self.model.entry_columns) == 1:
+                    fig = self.model.plot_regression()
+                    self.model.plot_widget.layout().addWidget(FigureCanvas(fig))
 
                 self.allow_inputs_prediction()
 
