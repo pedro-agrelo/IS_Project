@@ -34,6 +34,8 @@ class DataPreprocessorModel:
             except ValueError:
                 return False
             self.df[columns] = self.df[columns].fillna(constant_value)
+        
+        return True
 
     def get_missing_cells(self, columns):
         return self.df[columns].isna()
