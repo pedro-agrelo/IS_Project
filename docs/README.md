@@ -188,12 +188,11 @@ To download Projecta:
 ## Installing Projecta
 You must extract the ZIP file to install the software.  
 To Install Projecta:
-**Note**: You must read the instructions in the INSTALL.md and install Python if needed.
-1. Enter Command Prompt in the Start menu.
-2. Navigate to the folder you extracted from the ZIP file.
-3. Enter `pip install -r requirements.txt` to install the dependencies.  
+
+1. Navigate to the folder you extracted from the ZIP file.
+2. Enter in the cmd `pip install -r requirements.txt` to install the dependencies.  
    **Note**: Check the requirements for Python from `requirements.txt`.
-4. Double-click the `app.py` in the folder to run the software.
+3. Double-click the `Interface.py` to open the file and then run this file.
 
 ## Using Projecta
 In this section, we guide you through the execution process. The four main stages:
