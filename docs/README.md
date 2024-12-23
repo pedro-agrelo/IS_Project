@@ -192,7 +192,7 @@ To Install Projecta:
 1. Navigate to the folder you extracted from the ZIP file.
 2. Enter in the cmd `pip install -r requirements.txt` to install the dependencies.  
    **Note**: Check the requirements for Python from `requirements.txt`.
-3. Double-click the `Interface.py` to open the file and then run this file.
+3. Enter in the terminal: python.exe IS_Project-main\src\interface (with your route to the directory)
 
 ## Using Projecta
 In this section, we guide you through the execution process. The four main stages:
