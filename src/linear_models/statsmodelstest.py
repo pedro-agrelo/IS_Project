@@ -2,7 +2,7 @@
 import pandas as pd
 import statsmodels.formula.api as sm
 
-df=pd.read_csv(r'C:/Users/pedro/OneDrive/Documentos/CLASE/2º/SOFTWARE/Proyecto/IS_Project/src/linear_models/housing.csv')
+df = pd.read_csv('housing.csv')
 print(df.head())
 
 regresion = sm.ols('total_bedrooms ~ population - households', data=df) #Crear modelo linear
